@@ -1,0 +1,25 @@
+{
+  "movies_path": "/mnt/storage/Movies",
+  "tvshows_path": "/mnt/storage/TVShows",
+  "movies_in_separate_directories": false,
+  "tvshows_in_separate_directories": true,
+  "maximum_download_speed": "100K",
+  "real_debrid": {
+    "client_id": "ABCDEFGH",
+    "client_secret": "123kljaslkdj12lk3jkaljsd",
+    "access_token": "KLJLKJDLKHBKLJLKAJWLKER21342LKJLKDKL",
+    "refresh_token": "LKJSDLFKULKSJI23234LKJALSKJDSLKJ",
+    "expires_in": 3600,
+    "obtained_at": "2018-12-17T02:18:51.053517443+01:00",
+    "token_type": "Bearer"
+  },
+  "trakt_tv": {
+    "client_id": "ABCDEFGH",
+    "client_secret": "123kljaslkdj12lk3jkaljsd",
+    "access_token": "KLJLKJDLKHBKLJLKAJWLKER21342LKJLKDKL",
+    "refresh_token": "LKJSDLFKULKSJI23234LKJALSKJDSLKJ",
+    "expires_in": 3600,
+    "obtained_at": "2018-12-17T02:18:51.053517443+01:00",
+    "token_type": "Bearer"
+  }
+}
