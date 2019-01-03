@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  digest = "1:92af3af7106897c682e665f62136f343708e293e62792578a5753af0473c7975"
+  name = "github.com/cavaliercoder/grab"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "2c8601de6d9ac140430fd4c9de28509a0b855af5"
+  version = "v2.0.0"
+
+[[projects]]
   digest = "1:870d441fe217b8e689d7949fef6e43efbc787e50f200cb1e70dbca9204a1d6be"
   name = "github.com/inconshreveable/mousetrap"
   packages = ["."]
@@ -10,12 +18,20 @@
   version = "v1.0"
 
 [[projects]]
-  digest = "1:4e62048e1b0a1c44622b58f7d2a1019114b4b26124be617ee821969195b25817"
+  digest = "1:99c0ad28312c9033c9506a5ec056d75911528bfe6cac34c6a033e4779c299e30"
   name = "github.com/nenadstojanovikj/rd"
   packages = ["."]
   pruneopts = "UT"
-  revision = "287c0724721b40009487b7d9b46f53907a6b8902"
-  version = "v0.0.5"
+  revision = "7e03a9cb8a2ae19597ffd4b30a46c82705aad484"
+  version = "v0.0.6"
+
+[[projects]]
+  digest = "1:c24e41d6703513078fc299406d41f7d5ba13e32ab0c6bca287b00977a3eab502"
+  name = "github.com/nenadstojanovikj/showrss-go"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "fd66fcb790a110017d474700f1de8e082365a1b3"
+  version = "v0.0.2"
 
 [[projects]]
   branch = "master"
@@ -37,7 +53,9 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/cavaliercoder/grab",
     "github.com/nenadstojanovikj/rd",
+    "github.com/nenadstojanovikj/showrss-go",
     "github.com/spf13/cobra",
   ]
   solver-name = "gps-cdcl"
