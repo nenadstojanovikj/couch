@@ -20,17 +20,23 @@ type AuthConfig struct {
 	TokenType    string    `json:"token_type"`
 }
 
+type ShowRssConfig struct {
+	PersonalFeed string `json:"personal_feed"`
+}
+
 type Config struct {
 	configPath string
 	mu         sync.Mutex
 
-	MoviesPath                   string     `json:"movies_path"`
-	TVShowsPath                  string     `json:"tvshows_path"`
-	MoviesInSeparateDirectories  bool       `json:"movies_in_separate_directories"`
-	TVShowsInSeparateDirectories bool       `json:"tvshows_in_separate_directories"`
-	MaximumDownloadSpeed         string     `json:"maximum_download_speed"`
-	RealDebrid                   AuthConfig `json:"real_debrid"`
-	TraktTV                      AuthConfig `json:"trakt_tv"`
+	MoviesPath  string `json:"movies_path"`
+	TVShowsPath string `json:"tvshows_path"`
+
+	MoviesInSeparateDirectories  bool          `json:"movies_in_separate_directories"`
+	TVShowsInSeparateDirectories bool          `json:"tvshows_in_separate_directories"`
+	MaximumDownloadSpeed         string        `json:"maximum_download_speed"`
+	RealDebrid                   AuthConfig    `json:"real_debrid"`
+	TraktTV                      AuthConfig    `json:"trakt_tv"`
+	ShowRss                      ShowRssConfig `json:"showrss"`
 }
 
 func NewConfiguration() Config {
