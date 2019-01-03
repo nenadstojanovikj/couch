@@ -42,7 +42,7 @@ func realdebrid(conf *config.Config) func(command *cobra.Command, args []string)
 			time.Sleep(time.Duration(creds.Interval) * time.Second)
 			secrets, err := auth.ObtainSecret(creds.DeviceCode, rd.OpenSourceClientId)
 			if err != nil {
-				fmt.Printf("Still not verified, retrying (%d/%d)\n", i, tries)
+				fmt.Printf("Still not verified, retrying (%d/%d) - Ctrl+C to cancel\n", i, tries)
 				continue
 			}
 			token, err = auth.ObtainAccessToken(secrets.ClientID, secrets.ClientSecret, creds.DeviceCode)
@@ -68,6 +68,9 @@ func realdebrid(conf *config.Config) func(command *cobra.Command, args []string)
 
 		if token.AccessToken != "" {
 			fmt.Println("Successfully obtained token.")
+		} else {
+			fmt.Println("Failed to store token.")
 		}
+
 	}
 }

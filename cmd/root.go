@@ -15,6 +15,8 @@ func NewCLI(conf *config.Config) *cobra.Command {
 	}
 
 	rootCmd.AddCommand(NewAuthCommand(conf))
+	rootCmd.AddCommand(NewServerCommand(conf))
+	rootCmd.AddCommand(NewFetchCommand(conf))
 
 	return rootCmd
 }
