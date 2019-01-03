@@ -5,21 +5,25 @@
   "tvshows_in_separate_directories": true,
   "maximum_download_speed": "100K",
   "real_debrid": {
-    "client_id": "ABCDEFGH",
-    "client_secret": "123kljaslkdj12lk3jkaljsd",
-    "access_token": "KLJLKJDLKHBKLJLKAJWLKER21342LKJLKDKL",
-    "refresh_token": "LKJSDLFKULKSJI23234LKJALSKJDSLKJ",
+    "client_id": "AAAAA",
+    "client_secret": "bbbbb",
+    "access_token": "CCCCC",
+    "refresh_token": "DDDDD",
     "expires_in": 3600,
-    "obtained_at": "2018-12-17T02:18:51.053517443+01:00",
+    "obtained_at": "2018-01-03T22:21:44.711050803+01:00",
     "token_type": "Bearer"
   },
   "trakt_tv": {
-    "client_id": "ABCDEFGH",
-    "client_secret": "123kljaslkdj12lk3jkaljsd",
-    "access_token": "KLJLKJDLKHBKLJLKAJWLKER21342LKJLKDKL",
-    "refresh_token": "LKJSDLFKULKSJI23234LKJALSKJDSLKJ",
-    "expires_in": 3600,
-    "obtained_at": "2018-12-17T02:18:51.053517443+01:00",
-    "token_type": "Bearer"
+    "client_id": "asdf",
+    "client_secret": "asdf",
+    "access_token": "",
+    "refresh_token": "asdfasdf",
+    "expires_in": 0,
+    "obtained_at": "0001-01-01T00:00:00Z",
+    "token_type": ""
+  },
+  "showrss": {
+    "personal_feed": "http://showrss.info/user/123123.rss?magnets=true\u0026namespaces=true\u0026name=null\u0026quality=null\u0026re=null"
   }
 }
+
