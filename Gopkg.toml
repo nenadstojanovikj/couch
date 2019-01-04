@@ -1,6 +1,6 @@
 [[constraint]]
   name = "github.com/nenadstojanovikj/rd"
-  version = "0.0.6"
+  version = "0.0.7"
 
 [[constraint]]
   name = "github.com/nenadstojanovikj/showrss-go"
@@ -13,6 +13,10 @@
 [[constraint]]
   name = "github.com/cavaliercoder/grab"
   version = "2.0.0"
+
+[[constraint]]
+  name = "github.com/mattn/go-sqlite3"
+  version = "1.10.0"
 
 [prune]
   go-tests = true
