@@ -1,2 +1,5 @@
 config.json
 vendor
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
