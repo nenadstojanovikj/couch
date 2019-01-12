@@ -37,6 +37,7 @@ type Config struct {
 	RealDebrid                   AuthConfig    `json:"real_debrid"`
 	TraktTV                      AuthConfig    `json:"trakt_tv"`
 	ShowRss                      ShowRssConfig `json:"showrss"`
+	Port                         int           `json:"port"`
 }
 
 func NewConfiguration() Config {

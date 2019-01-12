@@ -2,15 +2,12 @@ package storage
 
 import (
 	"database/sql"
-	"fmt"
+	"github.com/nenadstojanovikj/couch/pkg/media"
 	"strings"
 	"time"
 )
 
 const (
-	// Possible types of the media item
-	TypeMovie  MediaType = "Movie"
-	TypeTVShow MediaType = "TVShow"
 
 	// Possible statuses for the media item
 	StatusPending     Status = "Pending"
@@ -18,66 +15,63 @@ const (
 	StatusDownloaded  Status = "Downloaded"
 	StatusError       Status = "Error"
 
-	// Formats for the title of the media item per type
-	FormatMovie  string = "%s (%d)"
-	FormatTVShow string = "%s (S%02dE%02d)"
+	Quality4K  Quality = "4K"
+	QualityFHD Quality = "FHD"
+	QualityHD  Quality = "HD"
+	QualitySD  Quality = "SD"
 )
 
 type (
-	// MediaTitle represents the Movie or TVShow title. Should be generated
-	// through the NewMovieTitle or NewTVShowTitle package methods
-	MediaTitle string
-
-	// MediaType is the type of media
-	MediaType string
-
 	// Status is the current status of the item
 	Status string
 
-	// MediaItem is the model used for storing the item's information
-	MediaItem struct {
-		Title MediaTitle
-		Type  MediaType
+	// Media is the model used for storing the item's information
+	Media struct {
+		Item media.Item
 
 		CreatedAt time.Time
 		UpdatedAt time.Time
 		Status    Status
 	}
 
-	MediaItemRepository struct {
+	// Quality is the quality of the media
+	Quality string
+
+	VideoType string
+
+	Magnet struct {
+		Title     media.Title
+		Location  string
+		Quality   Quality
+		VideoType VideoType
+	}
+
+	MediaRepository struct {
 		db *sql.DB
 	}
 )
 
-func NewMovieTitle(title string, year int) MediaTitle {
-	return MediaTitle(fmt.Sprintf(FormatMovie, title, year))
+func NewMediaRepository(db *sql.DB) *MediaRepository {
+	return &MediaRepository{db}
 }
 
-func NewTVShowTitle(title string, season, episode int) MediaTitle {
-	return MediaTitle(fmt.Sprintf(FormatTVShow, title, season, episode))
+func (r *MediaRepository) StoreMovie(title media.Title) error {
+	return r.StoreItem(media.Item{Title: title, Type: media.TypeMovie})
 }
 
-func NewMediaItemRepository(db *sql.DB) *MediaItemRepository {
-	return &MediaItemRepository{db}
+func (r *MediaRepository) StoreTVShow(title media.Title) error {
+	return r.StoreItem(media.Item{Title: title, Type: media.TypeEpisode})
 }
 
-func (r *MediaItemRepository) StoreMovie(title MediaTitle) error {
-	return r.storeMediaItem(title, TypeMovie)
-}
-
-func (r *MediaItemRepository) StoreTVShow(title MediaTitle) error {
-	return r.storeMediaItem(title, TypeTVShow)
-}
-
-func (r *MediaItemRepository) storeMediaItem(title MediaTitle, mediaType MediaType) error {
+func (r *MediaRepository) StoreItem(item media.Item) error {
 	now := time.Now().UTC().Format(ISO8601)
 	tx, err := r.db.Begin()
 	if err != nil {
 		return err
 	}
 	_, err = tx.Exec(
-		"REPLACE INTO resources (title, res_type, created_at, updated_at, status) VALUES (?, ?, ?, ?, ?)",
-		title, mediaType, now, now, StatusPending,
+		"INSERT OR IGNORE INTO search_items (title, type, created_at, updated_at, status) VALUES (?, ?, ?, ?, ?)",
+		item.Title, item.Type, now, now, StatusPending,
 	)
 	if err != nil {
 		return err
@@ -86,14 +80,14 @@ func (r *MediaItemRepository) storeMediaItem(title MediaTitle, mediaType MediaTy
 	return tx.Commit()
 }
 
-func (r *MediaItemRepository) AddLinks(title MediaTitle, links []string) error {
+func (r *MediaRepository) AddLinks(title media.Title, links []string) error {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return err
 	}
 
 	for _, link := range links {
-		_, err := tx.Exec("INSERT OR IGNORE INTO links (title, url) VALUES (?, ?)", title, link)
+		_, err := tx.Exec("INSERT OR IGNORE INTO realdebrid (title, url) VALUES (?, ?)", title, link)
 		if err != nil {
 			return err
 		}
@@ -105,13 +99,43 @@ func (r *MediaItemRepository) AddLinks(title MediaTitle, links []string) error {
 	return tx.Commit()
 }
 
-func (r *MediaItemRepository) Delete(title string) error {
-	_, err := r.db.Exec("DELETE FROM resources WHERE title = ?", title)
+func (r *MediaRepository) AddTorrent(t Magnet) error {
+	_, err := r.db.Exec("INSERT OR IGNORE INTO torrents (title, url, quality) VALUES (?, ?, ?)", t.Title, t.Location, t.Quality)
 	return err
 }
 
-func (r *MediaItemRepository) Fetch(criteria ...string) (resources []MediaItem, err error) {
-	query := "SELECT * FROM resources"
+func (r *MediaRepository) Delete(title string) error {
+	_, err := r.db.Exec("DELETE FROM search_items WHERE title = ?", title)
+	return err
+}
+
+// TODO Return show as well
+func (r *MediaRepository) NonStartedTorrents() (torrents []string, err error) {
+	query := `SELECT m.title FROM search_items m
+JOIN torrents t on t.title = m.title
+LEFT JOIN realdebrid l on l.title = t.title AND l.title is NULL
+WHERE m.status = 'Pending'
+`
+
+	rows, err := r.db.Query(query)
+	if err != nil {
+		return
+	}
+
+	for rows.Next() {
+		var t string
+		err = rows.Scan(&t)
+		if err != nil {
+			return
+		}
+		torrents = append(torrents, t)
+	}
+	return torrents, nil
+}
+
+// TODO Parametrize criteria
+func (r *MediaRepository) Fetch(criteria ...string) (items []Media, err error) {
+	query := "SELECT * FROM search_items"
 	if len(criteria) > 0 {
 		query += " WHERE " + strings.Join(criteria, " AND ")
 	}
@@ -121,15 +145,15 @@ func (r *MediaItemRepository) Fetch(criteria ...string) (resources []MediaItem, 
 		return nil, err
 	}
 
-	resources = make([]MediaItem, 0)
+	items = make([]Media, 0)
 	for rows.Next() {
-		var res MediaItem
-		err = rows.Scan(&res.Title, &res.Type, &res.CreatedAt, &res.UpdatedAt, &res.Status)
+		var m Media
+		err = rows.Scan(&m.Item.Title, &m.Item.Type, &m.CreatedAt, &m.UpdatedAt, &m.Status)
 		if err != nil {
 			return nil, err
 		}
-		resources = append(resources, res)
+		items = append(items, m)
 	}
 
-	return resources, nil
+	return items, nil
 }

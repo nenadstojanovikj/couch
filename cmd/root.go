@@ -5,9 +5,7 @@ import (
 	"github.com/nenadstojanovikj/couch/pkg/config"
 	"github.com/nenadstojanovikj/couch/pkg/storage"
 	"github.com/nenadstojanovikj/rd"
-	"github.com/nenadstojanovikj/showrss-go"
 	"github.com/spf13/cobra"
-	"net/http"
 	"os"
 )
 
@@ -24,14 +22,13 @@ func NewCLI(conf *config.Config) *cobra.Command {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	repo := storage.NewMediaItemRepository(db)
+	repo := storage.NewMediaRepository(db)
 
-	debrid := rd.NewRealDebrid(createToken(&conf.RealDebrid), http.DefaultClient, rd.AutoRefresh)
-	feed := showrss.NewClient(http.DefaultClient)
+	// feed := showrss.NewClient(http.DefaultClient)
 
+	rootCmd.AddCommand(NewAppCommand(conf, repo))
 	rootCmd.AddCommand(NewAuthCommand(conf))
-	rootCmd.AddCommand(NewServerCommand(conf))
-	rootCmd.AddCommand(NewFetchCommand(conf.ShowRss.PersonalFeed, repo, feed, debrid))
+	// rootCmd.AddCommand(NewFetchCommand(conf.ShowRss.PersonalFeed, feed, repo))
 
 	return rootCmd
 }

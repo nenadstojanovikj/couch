@@ -2,18 +2,19 @@ package storage
 
 import (
 	"fmt"
+	"github.com/nenadstojanovikj/couch/pkg/media"
 	"strings"
 )
 
 func Movie(title string, year int) string {
-	return fmt.Sprintf("res_type = '"+string(TypeMovie)+"' and title = '"+FormatMovie+"'", title, year)
+	return fmt.Sprintf("type = '"+string(media.TypeMovie)+"' and title = '"+media.FormatMovie+"'", title, year)
 }
 
-func TVShow(title string, season, episode int) string {
-	return fmt.Sprintf("res_type = '"+string(TypeTVShow)+"' and title = '"+FormatTVShow+"'", title, season, episode)
+func Episode(title string, season, episode int) string {
+	return fmt.Sprintf("type = '"+string(media.TypeEpisode)+"' and title = '"+media.FormatEpisode+"'", title, season, episode)
 }
 
-func Resources(items ...MediaTitle) string {
+func Resources(items ...media.Title) string {
 	titles := make([]string, len(items))
 	for i, item := range items {
 		titles[i] = "'" + string(item) + "'"
