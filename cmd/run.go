@@ -53,13 +53,21 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 			}
 		}()
 
-		downloadItems := make(chan media.Item, 10)
+		searchItems := make(chan media.Item, 10)
+
+		// searchItems := providers.Poll()
+
+		// go func() {
+		// 	for item := range searchItems {
+		//
+		// 	}
+		// }()
 
 		// mediaProviders := []mediaprovider.Poller{
 		// 	newShowRSSProvider(config),
 		// }
 		//
-		// downloadItems := make(chan media.Item, 10)
+		// searchItems := make(chan media.Item, 10)
 		// for _, provider := range mediaProviders {
 		// 	go func(provider mediaprovider.Poller) {
 		// 		for {
@@ -69,15 +77,15 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 		// 			}
 		//
 		// 			for _, item := range items {
-		// 				downloadItems <- item
+		// 				searchItems <- item
 		// 			}
 		//
-		// 			time.Sleep(provider.Timeout())
+		// 			time.Sleep(provider.Interval())
 		// 		}
 		// 	}(provider)
 		// }
 
-		downloadItems <- media.NewMovie("Venom", 2018, nil)
+		searchItems <- media.NewMovie("Venom", 2018, nil)
 
 		rarbgScraper, err := magnet.NewRarbgScraper()
 		if err != nil {
@@ -101,7 +109,8 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 		magnetChan := make(chan storage.Magnet)
 
 		go func() {
-			for item := range downloadItems {
+			for item := range searchItems {
+				// TODO Change check to be status instead of torrent count
 				if ok, err := repo.HasMagnets(item.Title); err != nil {
 					logrus.Errorf("error while fetching magnet info about item %s: %s", item.Title, err)
 					continue

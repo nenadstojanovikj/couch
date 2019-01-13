@@ -7,5 +7,5 @@ import (
 
 type Poller interface {
 	Poll() ([]media.Item, error)
-	Timeout() time.Duration
+	Interval() time.Duration
 }

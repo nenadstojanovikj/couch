@@ -12,7 +12,7 @@ title TEXT NOT NULL PRIMARY KEY,
 type TEXT NOT NULL CHECK(type in ('Movie', 'Episode')),
 created_at datetime NOT NULL,
 updated_at datetime NOT NULL,
-status TEXT NOT NULL CHECK(status in ('Pending', 'Debrid', 'Downloading', 'Downloaded', 'Error')))`,
+status TEXT NOT NULL CHECK(status in ('Pending', 'Scraped', 'Extracting', 'Downloading', 'Downloaded', 'Error')))`,
 
 		// Scrapers
 		`CREATE TABLE torrents (
