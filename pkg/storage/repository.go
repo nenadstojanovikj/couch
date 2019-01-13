@@ -19,6 +19,12 @@ const (
 	QualityFHD Quality = "FHD"
 	QualityHD  Quality = "HD"
 	QualitySD  Quality = "SD"
+
+	EncodingXVID Encoding = "XviD"
+	Encodingx264 Encoding = "x264"
+	Encodingx265 Encoding = "x265"
+	EncodingHEVC Encoding = "HEVC"
+	EncodingVC1  Encoding = "VC-1"
 )
 
 type (
@@ -37,13 +43,15 @@ type (
 	// Quality is the quality of the media
 	Quality string
 
-	VideoType string
+	Encoding string
 
 	Magnet struct {
-		Title     media.Title
-		Location  string
-		Quality   Quality
-		VideoType VideoType
+		Location string
+		Quality  Quality
+		Encoding Encoding
+		Item     media.Item
+		Size     uint64 // Size in bytes
+		Rating   int
 	}
 
 	MediaRepository struct {
@@ -100,13 +108,30 @@ func (r *MediaRepository) AddLinks(title media.Title, links []string) error {
 }
 
 func (r *MediaRepository) AddTorrent(t Magnet) error {
-	_, err := r.db.Exec("INSERT OR IGNORE INTO torrents (title, url, quality) VALUES (?, ?, ?)", t.Title, t.Location, t.Quality)
+	_, err := r.db.Exec(`INSERT OR IGNORE INTO torrents (title, url, quality, encoding, rating, size) VALUES (?, ?, ?, ?, ?, ?)`,
+		t.Item.Title, t.Location, t.Quality, t.Encoding, t.Rating, t.Size)
+
 	return err
 }
 
 func (r *MediaRepository) Delete(title string) error {
 	_, err := r.db.Exec("DELETE FROM search_items WHERE title = ?", title)
 	return err
+}
+
+func (r *MediaRepository) HasMagnets(title media.Title) (bool, error) {
+	query := `SELECT m.title 
+FROM search_items m
+JOIN torrents t on t.title = m.title
+WHERE m.status = 'Pending' AND m.title = ?
+`
+
+	rows, err := r.db.Query(query, title)
+	if err != nil {
+		return false, err
+	}
+
+	return rows.Next(), nil
 }
 
 // TODO Return show as well

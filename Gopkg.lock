@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  digest = "1:92af3af7106897c682e665f62136f343708e293e62792578a5753af0473c7975"
+  name = "github.com/cavaliercoder/grab"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "2c8601de6d9ac140430fd4c9de28509a0b855af5"
+  version = "v2.0.0"
+
+[[projects]]
   digest = "1:870d441fe217b8e689d7949fef6e43efbc787e50f200cb1e70dbca9204a1d6be"
   name = "github.com/inconshreveable/mousetrap"
   packages = ["."]
@@ -96,6 +104,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/cavaliercoder/grab",
     "github.com/mattn/go-sqlite3",
     "github.com/nenadstojanovikj/rd",
     "github.com/nenadstojanovikj/showrss-go",
