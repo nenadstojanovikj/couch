@@ -39,6 +39,9 @@ func NewAppCommand(config *config.Config, repo *storage.MediaRepository) *cobra.
 // magnet_info -> Extract links & files -> torrent_files & realdebrid
 // torrent_files & realdebrid -> Download
 
+// Utilize pipelines: https://blog.golang.org/pipelines
+// https://medium.com/statuscode/pipeline-patterns-in-go-a37bb3a7e61d
+
 func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
 		stop := make(chan os.Signal)
@@ -56,12 +59,6 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 		searchItems := make(chan media.Item, 10)
 
 		// searchItems := providers.Poll()
-
-		// go func() {
-		// 	for item := range searchItems {
-		//
-		// 	}
-		// }()
 
 		// mediaProviders := []mediaprovider.Poller{
 		// 	newShowRSSProvider(config),
