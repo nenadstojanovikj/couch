@@ -5,10 +5,6 @@ import (
 	"sort"
 )
 
-type (
-	Sort func([]storage.Magnet)
-)
-
 var qualityScore = map[storage.Quality]int{
 	storage.Quality4K:  4,
 	storage.QualityFHD: 3,
@@ -24,24 +20,26 @@ var encodingScore = map[storage.Encoding]int{
 	storage.EncodingXVID: 1,
 }
 
-func SortQuality(desc bool) Sort {
-	return func(magnets []storage.Magnet) {
+func SortQuality(desc bool) ProcessFunc {
+	return func(magnets []storage.Magnet) []storage.Magnet {
 		sort.Slice(magnets, func(i, j int) bool {
 			if desc {
 				i, j = j, i
 			}
 			return qualityScore[magnets[i].Quality] < qualityScore[magnets[j].Quality]
 		})
+		return magnets
 	}
 }
 
-func SortEncoding(desc bool) Sort {
-	return func(magnets []storage.Magnet) {
+func SortEncoding(desc bool) ProcessFunc {
+	return func(magnets []storage.Magnet) []storage.Magnet {
 		sort.Slice(magnets, func(i, j int) bool {
 			if desc {
 				i, j = j, i
 			}
 			return encodingScore[magnets[i].Encoding] < encodingScore[magnets[j].Encoding]
 		})
+		return magnets
 	}
 }

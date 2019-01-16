@@ -5,10 +5,10 @@ import (
 )
 
 type (
-	Filter func([]storage.Magnet) []storage.Magnet
+	ProcessFunc func([]storage.Magnet) []storage.Magnet
 )
 
-func FilterQuality(min, max storage.Quality) Filter {
+func FilterQuality(min, max storage.Quality) ProcessFunc {
 	return func(magnets []storage.Magnet) (new []storage.Magnet) {
 		for _, m := range magnets {
 			score := qualityScore[m.Quality]
@@ -23,7 +23,7 @@ func FilterQuality(min, max storage.Quality) Filter {
 	}
 }
 
-func FilterEncoding(encodings ...storage.Encoding) Filter {
+func FilterEncoding(encodings ...storage.Encoding) ProcessFunc {
 	allowedEncodings := make(map[storage.Encoding]bool)
 	for _, e := range encodings {
 		allowedEncodings[e] = true
