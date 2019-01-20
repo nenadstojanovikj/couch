@@ -1,12 +1,15 @@
 package pipeline
 
 import (
+	"fmt"
 	"github.com/nenadstojanovikj/couch/pkg/config"
 	"github.com/nenadstojanovikj/couch/pkg/magnet"
 	"github.com/nenadstojanovikj/couch/pkg/media"
 	"github.com/nenadstojanovikj/couch/pkg/storage"
 	"github.com/sirupsen/logrus"
 	"path"
+	"regexp"
+	"strconv"
 )
 
 type (
@@ -14,11 +17,6 @@ type (
 		repo      *storage.MediaRepository
 		extractor magnet.Extractor
 		config    *config.Config
-	}
-
-	downloadLocation struct {
-		Location    string
-		Destination string
 	}
 )
 
@@ -30,39 +28,51 @@ func NewExtractStep(repo *storage.MediaRepository, extractor magnet.Extractor, c
 	}
 }
 
-func (step *extractStep) Extract(magnetChan chan storage.Magnet) chan downloadLocation {
-	dlMap := make(chan downloadLocation, 10)
-	// TODO Pick between rdExtractor and localExtractor
+var tvShowRegex = regexp.MustCompile("(.*) S([0-9]{2})E([0-9]{2})")
+
+func (step *extractStep) Extract(magnetChan chan storage.Magnet) chan storage.Download {
+	dlMap := make(chan storage.Download, 10)
 	go func() {
 		for mag := range magnetChan {
 			go func(m storage.Magnet) {
-				url, err := step.extractor.Extract(m.Location)
+				if err := step.repo.Status(m.Item.Title, storage.StatusExtracting); err != nil {
+					logrus.Errorf("could not update status after download: %s", err)
+				}
+
+				urls, err := step.extractor.Extract(m.Location)
 				if err != nil {
 					logrus.Errorf("could not extract link %s: %s", m.Location, err)
 					return
 				}
 
-				if err := step.repo.AddLinks(m.Item.Title, []string{url}); err != nil {
-					logrus.Errorf("could not add link %s for %q: %s", url, m.Item.Title, err)
-					return
-				}
+				for _, url := range urls {
+					dlLocation := storage.Download{
+						Location: url,
+					}
 
-				dlLocation := downloadLocation{
-					Location: url,
-				}
+					// TODO Move to download package
+					// Function to generate path
+					switch m.Item.Type {
+					case media.TypeMovie:
+						// Decide if file needs to be renamed
+						dlLocation.Destination = path.Join(step.config.MoviesPath, path.Base(url))
+					case media.TypeEpisode:
+						matches := tvShowRegex.FindAllStringSubmatch(string(m.Item.Title), -1)
+						name := matches[0][1]
+						season, _ := strconv.Atoi(matches[0][2])
 
-				// TODO Move to download package
-				// Function to generate path
-				switch m.Item.Type {
-				case media.TypeMovie:
-					// Decide if file needs to be renamed
-					dlLocation.Destination = path.Join(step.config.MoviesPath, path.Base(url))
-				case media.TypeEpisode:
-					// Check if TV Shows are in separate dirs
-					dlLocation.Destination = path.Join(step.config.TVShowsPath, string(m.Item.Title))
-				}
+						// TODO Check if TV Shows are in separate dirs
+						dlLocation.Destination = path.Join(step.config.TVShowsPath, fmt.Sprintf("%s/Season %02d/%s", name, season, path.Base(url)))
+					}
+					dlLocation.Item = m.Item
 
-				dlMap <- dlLocation
+					if err := step.repo.AddDownload(dlLocation); err != nil {
+						logrus.Errorf("could not add download for %q: %s", dlLocation.Item.Title, err)
+						continue
+					}
+
+					dlMap <- dlLocation
+				}
 			}(mag)
 		}
 		close(dlMap)

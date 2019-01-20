@@ -34,6 +34,7 @@ type Config struct {
 	MoviesInSeparateDirectories  bool          `json:"movies_in_separate_directories"`
 	TVShowsInSeparateDirectories bool          `json:"tvshows_in_separate_directories"`
 	MaximumDownloadSpeed         string        `json:"maximum_download_speed"`
+	MaximumDownloadFiles         int           `json:"maximum_download_files"`
 	RealDebrid                   AuthConfig    `json:"real_debrid"`
 	TraktTV                      AuthConfig    `json:"trakt_tv"`
 	ShowRss                      ShowRssConfig `json:"showrss"`

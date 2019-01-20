@@ -49,9 +49,6 @@ func (s *RarbgScraper) Scrape(item media.Item) ([]storage.Magnet, error) {
 	if err != nil {
 		return nil, err
 	}
-	for _, r := range results {
-		logrus.Debugf("found magnet %s for %q", r.Download, item.Title)
-	}
 
 	magnets := make([]storage.Magnet, len(results))
 	for i, m := range results {
@@ -60,6 +57,8 @@ func (s *RarbgScraper) Scrape(item media.Item) ([]storage.Magnet, error) {
 		magnets[i].Item = item
 		magnets[i].Encoding = parseEncoding(m)
 		magnets[i].Size = m.Size
+
+		logrus.Debugf("found magnet %s for %q", m.Download, item.Title)
 	}
 
 	return magnets, nil
@@ -98,7 +97,17 @@ func parseQuality(result torrentapi.TorrentResult) storage.Quality {
 		return storage.QualitySD
 	}
 
-	return storage.Quality(matches[0][0])
+	qualityStr := matches[0][0]
+	switch qualityStr {
+	case "720p":
+		return storage.QualityHD
+	case "1080p":
+		return storage.QualityFHD
+	case "2160p":
+		return storage.Quality4K
+	default:
+		return storage.Quality(qualityStr)
+	}
 }
 
 func parseEncoding(result torrentapi.TorrentResult) storage.Encoding {

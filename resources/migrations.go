@@ -28,12 +28,15 @@ rating INTEGER DEFAULT 1
 		`CREATE TABLE realdebrid (
 title TEXT REFERENCES search_items(title),
 url TEXT NOT NULL UNIQUE,
+destination TEXT NOT NULL,
 error TEXT
 )`,
 		`CREATE TABLE torrent_files (
 title TEXT REFERENCES search_items(title),
 magnet TEXT NOT NULL,
-url TEXT NOT NULL UNIQUE
+url TEXT NOT NULL UNIQUE,
+destination TEXT NOT NULL,
+error TEXT
 )`,
 	}
 }

@@ -3,7 +3,6 @@ package storage
 import (
 	"database/sql"
 	"github.com/nenadstojanovikj/couch/pkg/media"
-	"strings"
 	"time"
 )
 
@@ -11,6 +10,8 @@ const (
 
 	// Possible statuses for the media item
 	StatusPending     Status = "Pending"
+	StatusScraped     Status = "Scraped"
+	StatusExtracting  Status = "Extracting"
 	StatusDownloading Status = "Downloading"
 	StatusDownloaded  Status = "Downloaded"
 	StatusError       Status = "Error"
@@ -57,18 +58,16 @@ type (
 	MediaRepository struct {
 		db *sql.DB
 	}
+
+	Download struct {
+		Location    string
+		Destination string
+		Item        media.Item
+	}
 )
 
 func NewMediaRepository(db *sql.DB) *MediaRepository {
 	return &MediaRepository{db}
-}
-
-func (r *MediaRepository) StoreMovie(title media.Title) error {
-	return r.StoreItem(media.Item{Title: title, Type: media.TypeMovie})
-}
-
-func (r *MediaRepository) StoreTVShow(title media.Title) error {
-	return r.StoreItem(media.Item{Title: title, Type: media.TypeEpisode})
 }
 
 func (r *MediaRepository) StoreItem(item media.Item) error {
@@ -88,18 +87,18 @@ func (r *MediaRepository) StoreItem(item media.Item) error {
 	return tx.Commit()
 }
 
-func (r *MediaRepository) AddLinks(title media.Title, links []string) error {
+func (r *MediaRepository) AddDownload(download Download) error {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return err
 	}
 
-	for _, link := range links {
-		_, err := tx.Exec("INSERT OR IGNORE INTO realdebrid (title, url) VALUES (?, ?)", title, link)
-		if err != nil {
-			return err
-		}
-	}
+	_, err = tx.Exec(
+		"INSERT OR IGNORE INTO realdebrid (title, url, destination) VALUES (?, ?, ?)",
+		download.Item.Title,
+		download.Location,
+		download.Destination,
+	)
 	if err != nil {
 		return err
 	}
@@ -134,12 +133,13 @@ WHERE m.status = 'Pending' AND m.title = ?
 	return rows.Next(), nil
 }
 
-// TODO Return show as well
-func (r *MediaRepository) NonStartedTorrents() (torrents []string, err error) {
-	query := `SELECT m.title FROM search_items m
+func (r *MediaRepository) NonStartedTorrents() (torrents []Magnet, err error) {
+	query := `SELECT m.title, m.type, t.url, t.size, t.quality, t.encoding, t.rating FROM search_items m
 JOIN torrents t on t.title = m.title
 LEFT JOIN realdebrid l on l.title = t.title AND l.title is NULL
-WHERE m.status = 'Pending'
+WHERE m.status = 'Downloading'
+GROUP BY m.title
+ORDER BY t.rating ASC
 `
 
 	rows, err := r.db.Query(query)
@@ -148,8 +148,8 @@ WHERE m.status = 'Pending'
 	}
 
 	for rows.Next() {
-		var t string
-		err = rows.Scan(&t)
+		var t Magnet
+		err = rows.Scan(&t.Item.Title, &t.Item.Type, &t.Location, &t.Size, &t.Quality, &t.Encoding, &t.Rating)
 		if err != nil {
 			return
 		}
@@ -158,27 +158,85 @@ WHERE m.status = 'Pending'
 	return torrents, nil
 }
 
-// TODO Parametrize criteria
-func (r *MediaRepository) Fetch(criteria ...string) (items []Media, err error) {
-	query := "SELECT * FROM search_items"
-	if len(criteria) > 0 {
-		query += " WHERE " + strings.Join(criteria, " AND ")
-	}
+func (r *MediaRepository) NonStartedDownloads() (downloads []Download, err error) {
+	query := `SELECT m.title, m.type, l.url, l.destination FROM search_items m
+JOIN realdebrid l on l.title = m.title
+WHERE m.status in ('Extracting', 'Downloading')
+`
 
 	rows, err := r.db.Query(query)
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	items = make([]Media, 0)
 	for rows.Next() {
-		var m Media
-		err = rows.Scan(&m.Item.Title, &m.Item.Type, &m.CreatedAt, &m.UpdatedAt, &m.Status)
+		var d Download
+		err = rows.Scan(&d.Item.Title, &d.Item.Type, &d.Location, &d.Destination)
 		if err != nil {
-			return nil, err
+			return
 		}
-		items = append(items, m)
+		downloads = append(downloads, d)
+	}
+	return downloads, nil
+}
+
+func (r *MediaRepository) NonExtractedTorrents() (torrents []Magnet, err error) {
+	query := `SELECT m.title, m.type, t.url, t.size, t.quality, t.encoding, t.rating FROM search_items m
+JOIN torrents t on t.title = m.title
+JOIN realdebrid l on l.title = t.title AND l.title is NULL
+WHERE m.status = 'Extracting'
+GROUP BY t.title
+ORDER BY t.rating ASC
+`
+
+	rows, err := r.db.Query(query)
+	if err != nil {
+		return
 	}
 
-	return items, nil
+	for rows.Next() {
+		var t Magnet
+		err = rows.Scan(&t.Item.Title, &t.Item.Type, &t.Location, &t.Size, &t.Quality, &t.Encoding, &t.Rating)
+		if err != nil {
+			return
+		}
+		torrents = append(torrents, t)
+	}
+	return torrents, nil
 }
+
+func (r *MediaRepository) Fetch(title media.Title) (m Media, err error) {
+	row := r.db.QueryRow("SELECT title, type, status, created_at, updated_at FROM search_items WHERE title = ?", title)
+	err = row.Scan(&m.Item.Title, &m.Item.Type, &m.Status, &m.CreatedAt, &m.UpdatedAt)
+	return m, err
+}
+
+func (r *MediaRepository) Status(title media.Title, status Status) error {
+	_, err := r.db.Exec("UPDATE search_items SET status = ? WHERE title = ?", status, title)
+	return err
+}
+
+// // TODO Parametrize criteria
+// func (r *MediaRepository) Fetch(criteria ...string) (items []Media, err error) {
+// 	query := "SELECT * FROM search_items"
+// 	if len(criteria) > 0 {
+// 		query += " WHERE " + strings.Join(criteria, " AND ")
+// 	}
+//
+// 	rows, err := r.db.Query(query)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	items = make([]Media, 0)
+// 	for rows.Next() {
+// 		var m Media
+// 		err = rows.Scan(&m.Item.Title, &m.Item.Type, &m.CreatedAt, &m.UpdatedAt, &m.Status)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		items = append(items, m)
+// 	}
+//
+// 	return items, nil
+// }

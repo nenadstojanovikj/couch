@@ -1,10 +1,11 @@
 {
     "port": 8080,
-    "movies_path": "/mnt/storage/Movies",
-    "tvshows_path": "/mnt/storage/TVShows",
+    "movies_path": "/mnt/exhdd/Movies",
+    "tvshows_path": "/mnt/exhdd/TVShows",
     "movies_in_separate_directories": false,
     "tvshows_in_separate_directories": true,
     "maximum_download_speed": "100M",
+    "maximum_download_files": 5,
     "real_debrid": {
         "client_id": "AAAAA",
         "client_secret": "bbbbb",

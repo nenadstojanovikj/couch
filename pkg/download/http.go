@@ -19,7 +19,18 @@ func NewHttpDownloader(grab *grab.Client) *HttpDownloader {
 }
 
 func (f *GrabFile) Info() *Info {
-	return &Info{TotalBytes: f.response.Size, DownloadedBytes: f.response.BytesComplete()}
+	var err error
+	if f.response.IsComplete() {
+		err = f.response.Err()
+	}
+
+	return &Info{
+		IsDone:          f.response.IsComplete(),
+		Error:           err,
+		Filepath:        f.response.Filename,
+		TotalBytes:      f.response.Size,
+		DownloadedBytes: f.response.BytesComplete(),
+	}
 }
 
 func (d *HttpDownloader) Get(url string, destination string) (Informer, error) {

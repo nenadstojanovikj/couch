@@ -3,6 +3,7 @@ package magnet
 import (
 	"fmt"
 	"github.com/nenadstojanovikj/rd"
+	"github.com/sirupsen/logrus"
 	"sort"
 	"time"
 )
@@ -23,12 +24,12 @@ func NewRealDebridExtractor(debrid *rd.RealDebrid, pollInterval time.Duration, d
 	}
 }
 
-func (ex *RealDebridExtractor) Extract(magnet string) (string, error) {
+func (ex *RealDebridExtractor) Extract(magnet string) ([]string, error) {
 	// Check for maximum number of torrents
 
 	info, err := ex.debrid.Torrents.AddMagnetLinkSimple(magnet)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	var torrent rd.TorrentInfo
@@ -37,7 +38,7 @@ loop:
 	for {
 		torrent, err = ex.debrid.Torrents.GetTorrent(info.ID)
 		if err != nil {
-			return "", fmt.Errorf("extractor: could not get info about torrent %s: %s", info.ID, err)
+			return nil, fmt.Errorf("extractor: could not get info about torrent %s: %s", info.ID, err)
 		}
 
 		switch torrent.Status {
@@ -46,7 +47,7 @@ loop:
 			// TODO Check if we need to download the whole torrent
 			fileIDs := extractFileIDs(torrent, ex.downloadAll)
 			if err := ex.debrid.Torrents.SelectFilesFromTorrent(torrent.ID, fileIDs); err != nil {
-				return "", fmt.Errorf("extractor: could not select files for download: %s", err)
+				return nil, fmt.Errorf("extractor: could not select files for download: %s", err)
 			}
 
 		// Return error if we cannot download the torrent for some reason
@@ -54,22 +55,27 @@ loop:
 		case rd.StatusMagnetError:
 		case rd.StatusVirus:
 		case rd.StatusError:
-			return "", fmt.Errorf("extractor: could not download torrent %s, status %s", torrent.ID, torrent.Status)
+			return nil, fmt.Errorf("extractor: could not download torrent %s, status %s", torrent.ID, torrent.Status)
 
 		// Only exit the loop when the torrent is successfully downloaded
 		case rd.StatusDownloaded:
 			break loop
 		}
+		logrus.Debugf("waiting on RealDebrid, progress %d", torrent.Progress)
 		time.Sleep(ex.pollInterval)
 	}
 
-	torrentLink := torrent.Links[0]
-	linkInfo, err := ex.debrid.Unrestrict.SimpleUnrestrict(torrentLink)
-	if err != nil {
-		return "", fmt.Errorf("extractor: could not unrestrict link %s: %s", linkInfo.Download, err)
+	links := make([]string, len(torrent.Links))
+	for i, link := range torrent.Links {
+		linkInfo, err := ex.debrid.Unrestrict.SimpleUnrestrict(link)
+		if err != nil {
+			return nil, fmt.Errorf("extractor: could not unrestrict link %s: %s", linkInfo.Download, err)
+		}
+
+		links[i] = linkInfo.Download
 	}
 
-	return linkInfo.Download, nil
+	return links, nil
 }
 
 func extractFileIDs(torrentInfo rd.TorrentInfo, extractAll bool) []int {
@@ -92,7 +98,7 @@ func extractFileIDs(torrentInfo rd.TorrentInfo, extractAll bool) []int {
 	}
 
 	sort.SliceStable(candidateFiles, func(i, j int) bool {
-		return candidateFiles[i].Bytes > candidateFiles[j].Bytes
+		return candidateFiles[i].Bytes < candidateFiles[j].Bytes
 	})
 
 	return []int{candidateFiles[len(candidateFiles)-1].ID}

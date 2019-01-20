@@ -25,13 +25,13 @@ func (step *scrapeStep) Scrape(searchItems <-chan media.Item) chan storage.Magne
 	go func() {
 		for item := range searchItems {
 			// TODO Change check to be status instead of torrent count
-			if ok, err := step.repo.HasMagnets(item.Title); err != nil {
-				logrus.Errorf("error while fetching magnet info about item %s: %s", item.Title, err)
-				continue
-			} else if ok {
-				logrus.Debugf("item %q has magnets, skipping", item.Title)
-				continue
-			}
+			// if ok, err := step.repo.HasMagnets(item.Title); err != nil {
+			// 	logrus.Errorf("error while fetching magnet info about item %s: %s", item.Title, err)
+			// 	continue
+			// } else if ok {
+			// 	logrus.Debugf("item %q has magnets, skipping", item.Title)
+			// 	continue
+			// }
 
 			logrus.Debugf("stored %s\n", item.Title)
 			err := step.repo.StoreItem(item)
@@ -71,11 +71,17 @@ func (step *scrapeStep) Scrape(searchItems <-chan media.Item) chan storage.Magne
 				}
 			}
 
-			// Pushing only the first torrent
 			if len(magnets) == 0 {
 				logrus.Warnf("no magnets for %q", item.Title)
 				continue
 			}
+
+			if err := step.repo.Status(item.Title, storage.StatusScraped); err != nil {
+				logrus.Errorf("error while updating status in database: %s", err)
+				continue
+			}
+
+			// Pushing only the best torrent
 			magnetChan <- magnets[0]
 		}
 	}()

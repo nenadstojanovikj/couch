@@ -4,8 +4,11 @@ type Info struct {
 	Filepath        string
 	TotalBytes      int64
 	DownloadedBytes int64
+	IsDone          bool
+	Error           error
 }
 
+// Progress returns the progress of the file from 0 to 1
 func (f *Info) Progress() float64 {
 	return float64(f.DownloadedBytes) / float64(f.TotalBytes)
 }
