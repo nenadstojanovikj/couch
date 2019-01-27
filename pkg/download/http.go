@@ -2,6 +2,7 @@ package download
 
 import (
 	"github.com/cavaliercoder/grab"
+	"github.com/nenadstojanovikj/couch/pkg/media"
 )
 
 type HttpDownloader struct {
@@ -10,11 +11,12 @@ type HttpDownloader struct {
 
 type GrabFile struct {
 	response *grab.Response
+	item     media.Item
 }
 
-func NewHttpDownloader(grab *grab.Client) *HttpDownloader {
+func NewHttpDownloader() *HttpDownloader {
 	return &HttpDownloader{
-		grab: grab,
+		grab: grab.NewClient(),
 	}
 }
 
@@ -25,6 +27,7 @@ func (f *GrabFile) Info() *Info {
 	}
 
 	return &Info{
+		Item:            f.item,
 		IsDone:          f.response.IsComplete(),
 		Error:           err,
 		Filepath:        f.response.Filename,
@@ -33,11 +36,11 @@ func (f *GrabFile) Info() *Info {
 	}
 }
 
-func (d *HttpDownloader) Get(url string, destination string) (Informer, error) {
+func (d *HttpDownloader) Get(item media.Item, url string, destination string) (Informer, error) {
 	req, err := grab.NewRequest(destination, url)
 	if err != nil {
 		return nil, err
 	}
 
-	return &GrabFile{response: d.grab.Do(req)}, nil
+	return &GrabFile{response: d.grab.Do(req), item: item}, nil
 }

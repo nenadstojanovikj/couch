@@ -2,18 +2,14 @@ package cmd
 
 import (
 	"database/sql"
-	"github.com/cavaliercoder/grab"
 	"github.com/nenadstojanovikj/couch/pipeline"
 	"github.com/nenadstojanovikj/couch/pkg/config"
 	"github.com/nenadstojanovikj/couch/pkg/download"
 	"github.com/nenadstojanovikj/couch/pkg/magnet"
 	"github.com/nenadstojanovikj/couch/pkg/media"
-	"github.com/nenadstojanovikj/couch/pkg/mediaprovider"
 	"github.com/nenadstojanovikj/couch/pkg/refresh"
 	"github.com/nenadstojanovikj/couch/pkg/storage"
-	"github.com/nenadstojanovikj/couch/pkg/web"
 	"github.com/nenadstojanovikj/rd"
-	"github.com/nenadstojanovikj/showrss-go"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"net/http"
@@ -46,25 +42,33 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 		logrus.SetLevel(logrus.DebugLevel)
 
 		searchItems := make(chan media.Item, 1)
-		go func() {
-			if err := web.NewWebServer(9999).ListenAndServe(); err != nil {
-				logrus.Fatalf("error with web server: %s", err)
-			}
-		}()
-		//
 		// go func() {
-		// 	reader := bufio.NewReader(os.Stdin)
-		// 	fmt.Println("Enter TV Show name:")
-		// 	name, _ := reader.ReadString('\n')
-		// 	fmt.Println("Season:")
-		// 	season, _ := reader.ReadString('\n')
-		// 	fmt.Println("Episode:")
-		// 	episode, _ := reader.ReadString('\n')
-		// 	name = strings.Trim(name, "\n")
-		// 	s, _ := strconv.Atoi(strings.Trim(season, "\n"))
-		// 	e, _ := strconv.Atoi(strings.Trim(episode, "\n"))
-		// 	fmt.Printf("%s %d %d", name, s, e)
-		// 	searchItems <- media.NewEpisode(name, s, e)
+		// 	if err := web.NewWebServer(9999).ListenAndServe(); err != nil {
+		// 		logrus.Fatalf("error with web server: %s", err)
+		// 	}
+		// }()
+		//
+
+		// go func() {
+		// 	for {
+		// 		reader := bufio.NewReader(os.Stdin)
+		// 		fmt.Println("Enter TV Show name:")
+		// 		name, _ := reader.ReadString('\n')
+		// 		fmt.Println("Season:")
+		// 		season, _ := reader.ReadString('\n')
+		// 		fmt.Println("Episode:")
+		// 		episode, _ := reader.ReadString('\n')
+		// 		name = strings.Trim(name, "\n")
+		// 		s, _ := strconv.Atoi(strings.Trim(season, "\n"))
+		// 		e, _ := strconv.Atoi(strings.Trim(episode, "\n"))
+		// 		if name != "" && s != 0 && e != 0 {
+		// 			episode := media.NewEpisode(name, s, e)
+		// 			logrus.Debugf("Adding %q for scraping", episode.Title)
+		// 			searchItems <- episode
+		// 		}
+		// 		fmt.Println()
+		// 		fmt.Println()
+		// 	}
 		// }()
 
 		// httpClient := &http.Client{Timeout: time.Second * 5}
@@ -77,7 +81,7 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 		// searchItems := pollStep.Poll()
 
 		// TODO Full season torrents?
-		// searchItems <- media.NewEpisode("Cosmos: A Spacetime Odyssey", 1, 1)
+		searchItems <- media.NewEpisode("Punisher", 2, 1)
 
 		// Filter out items that we already have
 		scrapeItems := make(chan media.Item)
@@ -99,18 +103,8 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 		if err != nil {
 			logrus.Fatalf("could not initialize rarbg: %s", err)
 		}
-		scrapeStep := pipeline.NewScrapeStep(repo, []magnet.Scraper{rarbgScraper})
-		magnetChan := scrapeStep.Scrape(scrapeItems)
 
-		go func() {
-			for {
-				if err := refresh.Magnet(repo, magnetChan); err != nil {
-					logrus.Error("could not refresh database magnets: %s", err)
-				}
-
-				time.Sleep(time.Minute * 10)
-			}
-		}()
+		magnetChan := pipeline.NewScrapeStep(repo, []magnet.Scraper{rarbgScraper}).Scrape(scrapeItems)
 
 		// Extract links from magnets
 		rdExtractor := magnet.NewRealDebridExtractor(
@@ -118,8 +112,8 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 			time.Second*10,
 			false,
 		)
-		extractStep := pipeline.NewExtractStep(repo, rdExtractor, config)
-		locationChannel := extractStep.Extract(magnetChan)
+
+		downloadLocations := pipeline.NewExtractStep(repo, rdExtractor, config).Extract(magnetChan)
 
 		go func() {
 			for {
@@ -131,18 +125,14 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 			}
 		}()
 
-		// Download final links
-		// TODO Use couch http client
-		grabber := grab.NewClient()
-		movieDownloader := download.NewHttpDownloader(grabber)
+		movieDownloader := download.NewHttpDownloader()
 
-		downloadStep := pipeline.NewDownloadStep(repo, movieDownloader, config.MaximumDownloadFiles)
-		downloadedItem := downloadStep.Download(locationChannel)
+		downloadedItems := pipeline.NewDownloadStep(repo, movieDownloader, config.MaximumDownloadFiles).Download(downloadLocations)
 
 		go func() {
 			for {
-				if err := refresh.Download(repo, locationChannel); err != nil {
-					logrus.Error("could not refresh database downloads: %s", err)
+				if err := refresh.Download(repo, downloadLocations); err != nil {
+					logrus.Error("could not refresh database for downloads: %s", err)
 				}
 
 				time.Sleep(time.Minute * 10)
@@ -150,21 +140,13 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 		}()
 
 		go func() {
-			for item := range downloadedItem {
+			for item := range downloadedItems {
 				logrus.Debugf("Downloaded %q", item.Title)
 			}
 		}()
 
 		<-stop
 	}
-}
-
-func newShowRSSProvider(config *config.Config) *mediaprovider.ShowRSSProvider {
-	return mediaprovider.NewShowRSSProvider(
-		time.Second*10,
-		config.ShowRss.PersonalFeed,
-		showrss.NewClient(http.DefaultClient),
-	)
 }
 
 func createToken(conf *config.AuthConfig) rd.Token {

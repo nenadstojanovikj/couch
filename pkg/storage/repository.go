@@ -118,47 +118,18 @@ func (r *MediaRepository) Delete(title string) error {
 	return err
 }
 
-func (r *MediaRepository) HasMagnets(title media.Title) (bool, error) {
-	query := `SELECT m.title 
-FROM search_items m
-JOIN torrents t on t.title = m.title
-WHERE m.status = 'Pending' AND m.title = ?
-`
-
-	rows, err := r.db.Query(query, title)
-	if err != nil {
-		return false, err
-	}
-
-	return rows.Next(), nil
+func (r *MediaRepository) Fetch(title media.Title) (m Media, err error) {
+	row := r.db.QueryRow("SELECT title, type, status, created_at, updated_at FROM search_items WHERE title = ?", title)
+	err = row.Scan(&m.Item.Title, &m.Item.Type, &m.Status, &m.CreatedAt, &m.UpdatedAt)
+	return m, err
 }
 
-func (r *MediaRepository) NonStartedTorrents() (torrents []Magnet, err error) {
-	query := `SELECT m.title, m.type, t.url, t.size, t.quality, t.encoding, t.rating FROM search_items m
-JOIN torrents t on t.title = m.title
-LEFT JOIN realdebrid l on l.title = t.title AND l.title is NULL
-WHERE m.status = 'Downloading'
-GROUP BY m.title
-ORDER BY t.rating ASC
-`
-
-	rows, err := r.db.Query(query)
-	if err != nil {
-		return
-	}
-
-	for rows.Next() {
-		var t Magnet
-		err = rows.Scan(&t.Item.Title, &t.Item.Type, &t.Location, &t.Size, &t.Quality, &t.Encoding, &t.Rating)
-		if err != nil {
-			return
-		}
-		torrents = append(torrents, t)
-	}
-	return torrents, nil
+func (r *MediaRepository) Status(title media.Title, status Status) error {
+	_, err := r.db.Exec("UPDATE search_items SET status = ? WHERE title = ?", status, title)
+	return err
 }
 
-func (r *MediaRepository) NonStartedDownloads() (downloads []Download, err error) {
+func (r *MediaRepository) InProgressDownloads() (downloads []Download, err error) {
 	query := `SELECT m.title, m.type, l.url, l.destination FROM search_items m
 JOIN realdebrid l on l.title = m.title
 WHERE m.status in ('Extracting', 'Downloading')
@@ -183,10 +154,11 @@ WHERE m.status in ('Extracting', 'Downloading')
 func (r *MediaRepository) NonExtractedTorrents() (torrents []Magnet, err error) {
 	query := `SELECT m.title, m.type, t.url, t.size, t.quality, t.encoding, t.rating FROM search_items m
 JOIN torrents t on t.title = m.title
-JOIN realdebrid l on l.title = t.title AND l.title is NULL
-WHERE m.status = 'Extracting'
+-- JOIN realdebrid l on l.title = t.title AND l.title is NULL
+WHERE m.status in ('Extracting', 'Scraped')
+AND m.title NOT IN (SELECT l.title FROM realdebrid l)
 GROUP BY t.title
-ORDER BY t.rating ASC
+ORDER BY t.rating ASC;
 `
 
 	rows, err := r.db.Query(query)
@@ -204,39 +176,3 @@ ORDER BY t.rating ASC
 	}
 	return torrents, nil
 }
-
-func (r *MediaRepository) Fetch(title media.Title) (m Media, err error) {
-	row := r.db.QueryRow("SELECT title, type, status, created_at, updated_at FROM search_items WHERE title = ?", title)
-	err = row.Scan(&m.Item.Title, &m.Item.Type, &m.Status, &m.CreatedAt, &m.UpdatedAt)
-	return m, err
-}
-
-func (r *MediaRepository) Status(title media.Title, status Status) error {
-	_, err := r.db.Exec("UPDATE search_items SET status = ? WHERE title = ?", status, title)
-	return err
-}
-
-// // TODO Parametrize criteria
-// func (r *MediaRepository) Fetch(criteria ...string) (items []Media, err error) {
-// 	query := "SELECT * FROM search_items"
-// 	if len(criteria) > 0 {
-// 		query += " WHERE " + strings.Join(criteria, " AND ")
-// 	}
-//
-// 	rows, err := r.db.Query(query)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-//
-// 	items = make([]Media, 0)
-// 	for rows.Next() {
-// 		var m Media
-// 		err = rows.Scan(&m.Item.Title, &m.Item.Type, &m.CreatedAt, &m.UpdatedAt, &m.Status)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		items = append(items, m)
-// 	}
-//
-// 	return items, nil
-// }

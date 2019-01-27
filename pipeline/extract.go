@@ -10,6 +10,7 @@ import (
 	"path"
 	"regexp"
 	"strconv"
+	"sync"
 )
 
 type (
@@ -17,14 +18,18 @@ type (
 		repo      *storage.MediaRepository
 		extractor magnet.Extractor
 		config    *config.Config
+
+		mu              sync.RWMutex
+		currentExtracts map[media.Title]interface{}
 	}
 )
 
 func NewExtractStep(repo *storage.MediaRepository, extractor magnet.Extractor, config *config.Config) *extractStep {
 	return &extractStep{
-		repo:      repo,
-		extractor: extractor,
-		config:    config,
+		repo:            repo,
+		extractor:       extractor,
+		config:          config,
+		currentExtracts: make(map[media.Title]interface{}),
 	}
 }
 
@@ -34,7 +39,20 @@ func (step *extractStep) Extract(magnetChan chan storage.Magnet) chan storage.Do
 	dlMap := make(chan storage.Download, 10)
 	go func() {
 		for mag := range magnetChan {
+			step.mu.RLock()
+			if _, ok := step.currentExtracts[mag.Item.Title]; ok {
+				step.mu.RUnlock()
+				logrus.Debugf("skipped %q", mag.Item.Title)
+				continue
+			}
+			step.mu.RUnlock()
+
+			step.mu.Lock()
+			step.currentExtracts[mag.Item.Title] = nil
+			step.mu.Unlock()
+
 			go func(m storage.Magnet) {
+				logrus.Debugf("extracting %q", m.Item.Title)
 				if err := step.repo.Status(m.Item.Title, storage.StatusExtracting); err != nil {
 					logrus.Errorf("could not update status after download: %s", err)
 				}

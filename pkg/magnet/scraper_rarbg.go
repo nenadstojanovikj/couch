@@ -85,7 +85,13 @@ var categoryEncoding = map[string]storage.Encoding{
 }
 
 var qualityRegex = regexp.MustCompile("2160p|1080p|720p")
-var encodingRegex = regexp.MustCompile("[xXhH]264|[xXhH]265|HEVC|[xX][vV][iI][dD]")
+var encodingRegexes = map[storage.Encoding]*regexp.Regexp{
+	storage.EncodingHEVC: regexp.MustCompile("hevc|HEVC"),
+	storage.Encodingx264: regexp.MustCompile("[xXhH]264"),
+	storage.Encodingx265: regexp.MustCompile("[xXhH]265"),
+	storage.EncodingXVID: regexp.MustCompile("[xX][vV][iI][dD]"),
+	storage.EncodingVC1:  regexp.MustCompile("vc1|VC1|VC-1|vc-1"),
+}
 
 func parseQuality(result torrentapi.TorrentResult) storage.Quality {
 	if q, ok := categoryQuality[result.Category]; ok {
@@ -115,10 +121,12 @@ func parseEncoding(result torrentapi.TorrentResult) storage.Encoding {
 		return q
 	}
 
-	matches := encodingRegex.FindAllStringSubmatch(result.Title, -1)
-	if len(matches) != 1 {
-		return storage.Encodingx264
+	for enc, regex := range encodingRegexes {
+		matches := regex.FindAllStringSubmatch(result.Title, -1)
+		if len(matches) >= 1 {
+			return enc
+		}
 	}
 
-	return storage.Encoding(matches[0][0])
+	return storage.Encodingx264
 }

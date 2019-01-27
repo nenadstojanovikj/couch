@@ -5,7 +5,7 @@ import (
 )
 
 func Download(repo *storage.MediaRepository, toDownload chan storage.Download) error {
-	downloads, err := repo.NonStartedDownloads()
+	downloads, err := repo.InProgressDownloads()
 	if err != nil {
 		return err
 	}
