@@ -9,7 +9,14 @@ func Migrations() []string {
 		// Search data
 		`CREATE TABLE search_items (
 title TEXT NOT NULL PRIMARY KEY,
+orig_title TEXT NOT NULL,
 type TEXT NOT NULL CHECK(type in ('Movie', 'Episode')),
+
+-- Type specific data
+year INTEGER DEFAULT 0,
+season SMALLINT DEFAULT 0,
+episode SMALLINT DEFAULT 0,
+
 created_at datetime NOT NULL,
 updated_at datetime NOT NULL,
 status TEXT NOT NULL CHECK(status in ('Pending', 'Scraped', 'Extracting', 'Downloading', 'Downloaded', 'Error')))`,

@@ -11,7 +11,7 @@ type HttpDownloader struct {
 
 type GrabFile struct {
 	response *grab.Response
-	item     media.Item
+	item     media.Metadata
 }
 
 func NewHttpDownloader() *HttpDownloader {
@@ -36,7 +36,7 @@ func (f *GrabFile) Info() *Info {
 	}
 }
 
-func (d *HttpDownloader) Get(item media.Item, url string, destination string) (Informer, error) {
+func (d *HttpDownloader) Get(item media.Metadata, url string, destination string) (Informer, error) {
 	req, err := grab.NewRequest(destination, url)
 	if err != nil {
 		return nil, err

@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"bufio"
 	"database/sql"
+	"fmt"
 	"github.com/nenadstojanovikj/couch/pipeline"
 	"github.com/nenadstojanovikj/couch/pkg/config"
 	"github.com/nenadstojanovikj/couch/pkg/download"
@@ -15,6 +17,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -41,59 +45,52 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 
 		logrus.SetLevel(logrus.DebugLevel)
 
-		searchItems := make(chan media.Item, 1)
-		// go func() {
-		// 	if err := web.NewWebServer(9999).ListenAndServe(); err != nil {
-		// 		logrus.Fatalf("error with web server: %s", err)
-		// 	}
-		// }()
-		//
+		searchItems := make(chan media.Metadata)
 
-		// go func() {
-		// 	for {
-		// 		reader := bufio.NewReader(os.Stdin)
-		// 		fmt.Println("Enter TV Show name:")
-		// 		name, _ := reader.ReadString('\n')
-		// 		fmt.Println("Season:")
-		// 		season, _ := reader.ReadString('\n')
-		// 		fmt.Println("Episode:")
-		// 		episode, _ := reader.ReadString('\n')
-		// 		name = strings.Trim(name, "\n")
-		// 		s, _ := strconv.Atoi(strings.Trim(season, "\n"))
-		// 		e, _ := strconv.Atoi(strings.Trim(episode, "\n"))
-		// 		if name != "" && s != 0 && e != 0 {
-		// 			episode := media.NewEpisode(name, s, e)
-		// 			logrus.Debugf("Adding %q for scraping", episode.Title)
-		// 			searchItems <- episode
-		// 		}
-		// 		fmt.Println()
-		// 		fmt.Println()
-		// 	}
-		// }()
+		go func() {
+			for {
+				reader := bufio.NewReader(os.Stdin)
+				fmt.Println("Enter TV Show name:")
+				name, _ := reader.ReadString('\n')
+				fmt.Println("Season:")
+				season, _ := reader.ReadString('\n')
+				fmt.Println("Episode:")
+				episode, _ := reader.ReadString('\n')
+				name = strings.Trim(name, "\n")
+				s, _ := strconv.Atoi(strings.Trim(season, "\n"))
+				e, _ := strconv.Atoi(strings.Trim(episode, "\n"))
+				if name != "" && s != 0 && e != 0 {
+					episode := media.NewEpisode(name, s, e)
+					logrus.Debugf("Adding %q for scraping", episode.UniqueTitle)
+					searchItems <- episode
+				}
+				fmt.Println()
+				fmt.Println()
+			}
+		}()
 
 		// httpClient := &http.Client{Timeout: time.Second * 5}
 
 		// Start polling providers
 		// mediaProviders := []mediaprovider.Poller{
-		// 	mediaprovider.NewShowRSSProvider(time.Second*10, config.ShowRss.PersonalFeed, showrss.NewClient(httpClient)),
 		// }
 		// pollStep := pipeline.NewPollStep(repo, mediaProviders)
 		// searchItems := pollStep.Poll()
 
 		// TODO Full season torrents?
-		searchItems <- media.NewEpisode("Punisher", 2, 1)
+		// searchItems <- media.NewEpisode("Punisher", 2, 1)
 
 		// Filter out items that we already have
-		scrapeItems := make(chan media.Item)
+		scrapeItems := make(chan media.Metadata)
 		go func() {
 			for item := range searchItems {
-				m, err := repo.Fetch(item.Title)
+				m, err := repo.Fetch(item.UniqueTitle)
 
 				if err == sql.ErrNoRows || m.Status == storage.StatusPending {
 					scrapeItems <- item
-					logrus.Infof("pushing %q for scraping", item.Title)
+					logrus.Infof("pushing %q for scraping", item.UniqueTitle)
 				} else {
-					logrus.Infof("skipping %q", item.Title)
+					logrus.Infof("skipping %q for scraping", item.UniqueTitle)
 				}
 			}
 		}()
@@ -115,6 +112,11 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 
 		downloadLocations := pipeline.NewExtractStep(repo, rdExtractor, config).Extract(magnetChan)
 
+		movieDownloader := download.NewHttpDownloader()
+
+		downloadedItems := pipeline.NewDownloadStep(repo, movieDownloader, config.MaximumDownloadFiles).Download(downloadLocations)
+
+		// Periodic pollers
 		go func() {
 			for {
 				if err := refresh.Extract(repo, magnetChan); err != nil {
@@ -124,10 +126,6 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 				time.Sleep(time.Minute * 10)
 			}
 		}()
-
-		movieDownloader := download.NewHttpDownloader()
-
-		downloadedItems := pipeline.NewDownloadStep(repo, movieDownloader, config.MaximumDownloadFiles).Download(downloadLocations)
 
 		go func() {
 			for {
@@ -139,9 +137,10 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 			}
 		}()
 
+		// Download notifier
 		go func() {
 			for item := range downloadedItems {
-				logrus.Debugf("Downloaded %q", item.Title)
+				logrus.Debugf("Downloaded %q", item.UniqueTitle)
 			}
 		}()
 

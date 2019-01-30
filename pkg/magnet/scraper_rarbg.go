@@ -22,8 +22,8 @@ func NewRarbgScraper() (*RarbgScraper, error) {
 	return &RarbgScraper{client: api}, nil
 }
 
-func (s *RarbgScraper) Scrape(item media.Item) ([]storage.Magnet, error) {
-	query := s.client.SearchString(string(item.Title))
+func (s *RarbgScraper) Scrape(item media.Metadata) ([]storage.Magnet, error) {
+	query := s.client.SearchString(string(item.UniqueTitle))
 	query.Format("json_extended")
 	switch item.Type {
 	case media.TypeEpisode:
@@ -58,7 +58,7 @@ func (s *RarbgScraper) Scrape(item media.Item) ([]storage.Magnet, error) {
 		magnets[i].Encoding = parseEncoding(m)
 		magnets[i].Size = m.Size
 
-		logrus.Debugf("found magnet %s for %q", m.Download, item.Title)
+		logrus.Debugf("found magnet %s for %q", m.Download, item.UniqueTitle)
 	}
 
 	return magnets, nil

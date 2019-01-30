@@ -20,40 +20,32 @@ func NewScrapeStep(repo *storage.MediaRepository, scrapers []magnet.Scraper) *sc
 }
 
 // TODO Take processors from constructor/config
-func (step *scrapeStep) Scrape(searchItems <-chan media.Item) chan storage.Magnet {
+func (step *scrapeStep) Scrape(searchItems <-chan media.Metadata) chan storage.Magnet {
 	magnetChan := make(chan storage.Magnet)
 	go func() {
 		for item := range searchItems {
-			// TODO Change check to be status instead of torrent count
-			// if ok, err := step.repo.HasMagnets(item.Title); err != nil {
-			// 	logrus.Errorf("error while fetching magnet info about item %s: %s", item.Title, err)
-			// 	continue
-			// } else if ok {
-			// 	logrus.Debugf("item %q has magnets, skipping", item.Title)
-			// 	continue
-			// }
-
-			logrus.Debugf("stored %s\n", item.Title)
+			logrus.Debugf("scraping %q", item.UniqueTitle)
 			err := step.repo.StoreItem(item)
 			if err != nil {
-				logrus.Errorf("could not store %q: %s", item.Title, err)
+				logrus.Errorf("could not store %q: %s", item.UniqueTitle, err)
 				continue
 			}
 
-			magnets := make([]storage.Magnet, 0)
+			var magnets []storage.Magnet
 			for _, s := range step.scrapers {
 				items, err := s.Scrape(item)
 				if err != nil {
-					logrus.Errorf("could not scrape %s: %s", item.Title, err)
+					logrus.Errorf("could not scrape %q: %s", item.UniqueTitle, err)
 					continue
 				}
 				magnets = append(magnets, items...)
-				logrus.Debugf("scraped %s\n", item.Title)
+				logrus.Debugf("scraped %q", item.UniqueTitle)
 			}
 
 			processors := []magnet.ProcessFunc{
 				magnet.FilterQuality(storage.QualityHD, storage.Quality4K),
 				magnet.FilterEncoding(storage.Encodingx264, storage.Encodingx265, storage.EncodingHEVC),
+				magnet.SortSize(false),
 				magnet.SortQuality(true),
 				magnet.SortEncoding(true),
 			}
@@ -72,11 +64,11 @@ func (step *scrapeStep) Scrape(searchItems <-chan media.Item) chan storage.Magne
 			}
 
 			if len(magnets) == 0 {
-				logrus.Warnf("no magnets for %q", item.Title)
+				logrus.Warnf("no magnets for %q", item.UniqueTitle)
 				continue
 			}
 
-			if err := step.repo.Status(item.Title, storage.StatusScraped); err != nil {
+			if err := step.repo.Status(item.UniqueTitle, storage.StatusScraped); err != nil {
 				logrus.Errorf("error while updating status in database: %s", err)
 				continue
 			}

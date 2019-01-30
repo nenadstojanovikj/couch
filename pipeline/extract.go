@@ -20,7 +20,7 @@ type (
 		config    *config.Config
 
 		mu              sync.RWMutex
-		currentExtracts map[media.Title]interface{}
+		currentExtracts map[string]interface{}
 	}
 )
 
@@ -29,7 +29,7 @@ func NewExtractStep(repo *storage.MediaRepository, extractor magnet.Extractor, c
 		repo:            repo,
 		extractor:       extractor,
 		config:          config,
-		currentExtracts: make(map[media.Title]interface{}),
+		currentExtracts: make(map[string]interface{}),
 	}
 }
 
@@ -39,21 +39,18 @@ func (step *extractStep) Extract(magnetChan chan storage.Magnet) chan storage.Do
 	dlMap := make(chan storage.Download, 10)
 	go func() {
 		for mag := range magnetChan {
-			step.mu.RLock()
-			if _, ok := step.currentExtracts[mag.Item.Title]; ok {
-				step.mu.RUnlock()
-				logrus.Debugf("skipped %q", mag.Item.Title)
+			step.mu.Lock()
+			if _, ok := step.currentExtracts[mag.Item.UniqueTitle]; ok {
+				step.mu.Unlock()
+				logrus.Debugf("skipped extract of %q as it is in progress", mag.Item.UniqueTitle)
 				continue
 			}
-			step.mu.RUnlock()
-
-			step.mu.Lock()
-			step.currentExtracts[mag.Item.Title] = nil
+			step.currentExtracts[mag.Item.UniqueTitle] = nil
 			step.mu.Unlock()
 
 			go func(m storage.Magnet) {
-				logrus.Debugf("extracting %q", m.Item.Title)
-				if err := step.repo.Status(m.Item.Title, storage.StatusExtracting); err != nil {
+				logrus.Debugf("extracting %q", m.Item.UniqueTitle)
+				if err := step.repo.Status(m.Item.UniqueTitle, storage.StatusExtracting); err != nil {
 					logrus.Errorf("could not update status after download: %s", err)
 				}
 
@@ -75,17 +72,17 @@ func (step *extractStep) Extract(magnetChan chan storage.Magnet) chan storage.Do
 						// Decide if file needs to be renamed
 						dlLocation.Destination = path.Join(step.config.MoviesPath, path.Base(url))
 					case media.TypeEpisode:
-						matches := tvShowRegex.FindAllStringSubmatch(string(m.Item.Title), -1)
+						matches := tvShowRegex.FindAllStringSubmatch(string(m.Item.UniqueTitle), -1)
 						name := matches[0][1]
 						season, _ := strconv.Atoi(matches[0][2])
 
 						// TODO Check if TV Shows are in separate dirs
-						dlLocation.Destination = path.Join(step.config.TVShowsPath, fmt.Sprintf("%s/Season %02d/%s", name, season, path.Base(url)))
+						dlLocation.Destination = path.Join(step.config.TVShowsPath, fmt.Sprintf("%s/Season %d/%s", name, season, path.Base(url)))
 					}
 					dlLocation.Item = m.Item
 
 					if err := step.repo.AddDownload(dlLocation); err != nil {
-						logrus.Errorf("could not add download for %q: %s", dlLocation.Item.Title, err)
+						logrus.Errorf("could not add download for %q: %s", dlLocation.Item.UniqueTitle, err)
 						continue
 					}
 

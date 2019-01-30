@@ -20,8 +20,8 @@ func NewPollStep(repo *storage.MediaRepository, pollers []mediaprovider.Poller) 
 	}
 }
 
-func (step *pollStep) Poll() chan media.Item {
-	searchItems := make(chan media.Item, 10)
+func (step *pollStep) Poll() chan media.Metadata {
+	searchItems := make(chan media.Metadata, 10)
 
 	for _, provider := range step.pollers {
 		// TODO Add pauseChan which would stop the polling for a specified provider

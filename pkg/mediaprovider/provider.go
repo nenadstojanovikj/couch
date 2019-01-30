@@ -6,6 +6,6 @@ import (
 )
 
 type Poller interface {
-	Poll() ([]media.Item, error)
+	Poll() ([]media.Metadata, error)
 	Interval() time.Duration
 }

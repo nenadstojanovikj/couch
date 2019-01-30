@@ -22,7 +22,7 @@ var encodingScore = map[storage.Encoding]int{
 
 func SortQuality(desc bool) ProcessFunc {
 	return func(magnets []storage.Magnet) []storage.Magnet {
-		sort.Slice(magnets, func(i, j int) bool {
+		sort.SliceStable(magnets, func(i, j int) bool {
 			if desc {
 				i, j = j, i
 			}
@@ -32,9 +32,21 @@ func SortQuality(desc bool) ProcessFunc {
 	}
 }
 
+func SortSize(desc bool) ProcessFunc {
+	return func(magnets []storage.Magnet) []storage.Magnet {
+		sort.SliceStable(magnets, func(i, j int) bool {
+			if desc {
+				i, j = j, i
+			}
+			return magnets[i].Size < magnets[j].Size
+		})
+		return magnets
+	}
+}
+
 func SortEncoding(desc bool) ProcessFunc {
 	return func(magnets []storage.Magnet) []storage.Magnet {
-		sort.Slice(magnets, func(i, j int) bool {
+		sort.SliceStable(magnets, func(i, j int) bool {
 			if desc {
 				i, j = j, i
 			}

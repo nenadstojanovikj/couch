@@ -34,7 +34,7 @@ type (
 
 	// Media is the model used for storing the item's information
 	Media struct {
-		Item media.Item
+		Item media.Metadata
 
 		CreatedAt time.Time
 		UpdatedAt time.Time
@@ -50,7 +50,7 @@ type (
 		Location string
 		Quality  Quality
 		Encoding Encoding
-		Item     media.Item
+		Item     media.Metadata
 		Size     uint64 // Size in bytes
 		Rating   int
 	}
@@ -62,7 +62,7 @@ type (
 	Download struct {
 		Location    string
 		Destination string
-		Item        media.Item
+		Item        media.Metadata
 	}
 )
 
@@ -70,7 +70,7 @@ func NewMediaRepository(db *sql.DB) *MediaRepository {
 	return &MediaRepository{db}
 }
 
-func (r *MediaRepository) StoreItem(item media.Item) error {
+func (r *MediaRepository) StoreItem(item media.Metadata) error {
 	now := time.Now().UTC().Format(ISO8601)
 	tx, err := r.db.Begin()
 	if err != nil {
@@ -78,7 +78,7 @@ func (r *MediaRepository) StoreItem(item media.Item) error {
 	}
 	_, err = tx.Exec(
 		"INSERT OR IGNORE INTO search_items (title, type, created_at, updated_at, status) VALUES (?, ?, ?, ?, ?)",
-		item.Title, item.Type, now, now, StatusPending,
+		item.UniqueTitle, item.Type, now, now, StatusPending,
 	)
 	if err != nil {
 		return err
@@ -95,7 +95,7 @@ func (r *MediaRepository) AddDownload(download Download) error {
 
 	_, err = tx.Exec(
 		"INSERT OR IGNORE INTO realdebrid (title, url, destination) VALUES (?, ?, ?)",
-		download.Item.Title,
+		download.Item.UniqueTitle,
 		download.Location,
 		download.Destination,
 	)
@@ -108,7 +108,7 @@ func (r *MediaRepository) AddDownload(download Download) error {
 
 func (r *MediaRepository) AddTorrent(t Magnet) error {
 	_, err := r.db.Exec(`INSERT OR IGNORE INTO torrents (title, url, quality, encoding, rating, size) VALUES (?, ?, ?, ?, ?, ?)`,
-		t.Item.Title, t.Location, t.Quality, t.Encoding, t.Rating, t.Size)
+		t.Item.UniqueTitle, t.Location, t.Quality, t.Encoding, t.Rating, t.Size)
 
 	return err
 }
@@ -118,13 +118,13 @@ func (r *MediaRepository) Delete(title string) error {
 	return err
 }
 
-func (r *MediaRepository) Fetch(title media.Title) (m Media, err error) {
+func (r *MediaRepository) Fetch(title string) (m Media, err error) {
 	row := r.db.QueryRow("SELECT title, type, status, created_at, updated_at FROM search_items WHERE title = ?", title)
-	err = row.Scan(&m.Item.Title, &m.Item.Type, &m.Status, &m.CreatedAt, &m.UpdatedAt)
+	err = row.Scan(&m.Item.UniqueTitle, &m.Item.Type, &m.Status, &m.CreatedAt, &m.UpdatedAt)
 	return m, err
 }
 
-func (r *MediaRepository) Status(title media.Title, status Status) error {
+func (r *MediaRepository) Status(title string, status Status) error {
 	_, err := r.db.Exec("UPDATE search_items SET status = ? WHERE title = ?", status, title)
 	return err
 }
@@ -142,7 +142,7 @@ WHERE m.status in ('Extracting', 'Downloading')
 
 	for rows.Next() {
 		var d Download
-		err = rows.Scan(&d.Item.Title, &d.Item.Type, &d.Location, &d.Destination)
+		err = rows.Scan(&d.Item.UniqueTitle, &d.Item.Type, &d.Location, &d.Destination)
 		if err != nil {
 			return
 		}
@@ -168,7 +168,7 @@ ORDER BY t.rating ASC;
 
 	for rows.Next() {
 		var t Magnet
-		err = rows.Scan(&t.Item.Title, &t.Item.Type, &t.Location, &t.Size, &t.Quality, &t.Encoding, &t.Rating)
+		err = rows.Scan(&t.Item.UniqueTitle, &t.Item.Type, &t.Location, &t.Size, &t.Quality, &t.Encoding, &t.Rating)
 		if err != nil {
 			return
 		}

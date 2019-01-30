@@ -6,7 +6,7 @@ import (
 )
 
 type Info struct {
-	Item            media.Item
+	Item            media.Metadata
 	Filepath        string
 	TotalBytes      int64
 	DownloadedBytes int64
@@ -25,7 +25,7 @@ func (f *Info) ProgressBytes() string {
 }
 
 type Getter interface {
-	Get(item media.Item, url string, destination string) (Informer, error)
+	Get(item media.Metadata, url string, destination string) (Informer, error)
 }
 
 type Informer interface {

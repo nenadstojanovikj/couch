@@ -40,8 +40,8 @@ func NewDownloadStep(repo *storage.MediaRepository, getter download.Getter, maxD
 	}
 }
 
-func (step *downloadStep) Download(downloads <-chan storage.Download) chan media.Item {
-	downloadedChan := make(chan media.Item)
+func (step *downloadStep) Download(downloads <-chan storage.Download) chan media.Metadata {
+	downloadedChan := make(chan media.Metadata)
 
 	go func() {
 		// Start downloads
@@ -65,7 +65,7 @@ func (step *downloadStep) Download(downloads <-chan storage.Download) chan media
 				continue
 			}
 
-			if err := step.repo.Status(dl.Item.Title, storage.StatusDownloading); err != nil {
+			if err := step.repo.Status(dl.Item.UniqueTitle, storage.StatusDownloading); err != nil {
 				logrus.Errorf("could not update status after download: %s", err)
 			}
 
@@ -85,7 +85,7 @@ func (step *downloadStep) Download(downloads <-chan storage.Download) chan media
 				}
 
 				if info.Error != nil {
-					if err := step.repo.Status(info.Item.Title, storage.StatusError); err != nil {
+					if err := step.repo.Status(info.Item.UniqueTitle, storage.StatusError); err != nil {
 						logrus.Errorf("could not update status to error: %s", err)
 						continue
 					}
@@ -94,13 +94,13 @@ func (step *downloadStep) Download(downloads <-chan storage.Download) chan media
 
 				if info.IsDone {
 					downloadedChan <- info.Item
-					if err := step.repo.Status(info.Item.Title, storage.StatusDownloaded); err != nil {
+					if err := step.repo.Status(info.Item.UniqueTitle, storage.StatusDownloaded); err != nil {
 						logrus.Errorf("could not update status after download: %s", err)
 						continue
 					}
 				}
 
-				logrus.Debugf("completed download for %q", info.Item.Title)
+				logrus.Debugf("completed download for %q", info.Item.UniqueTitle)
 				delete(step.informers, index)
 			}
 			time.Sleep(time.Second * 5)
@@ -117,7 +117,7 @@ func (step *downloadStep) Download(downloads <-chan storage.Download) chan media
 			for _, informer := range step.informers {
 				info := informer.Info()
 				fmt.Printf("Progress of %s is %s\n", info.Filepath, info.ProgressBytes())
-				fmt.Printf("  -> %d/%d\n", info.DownloadedBytes, info.TotalBytes)
+				fmt.Printf("  -> %d/%d (%.2f%%)\n", info.DownloadedBytes, info.TotalBytes, info.Progress()*100)
 			}
 		}
 	}()
