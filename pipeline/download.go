@@ -28,7 +28,7 @@ func NewDownloadStep(repo *storage.MediaRepository, getter download.Getter, maxD
 	maxDL := make(chan interface{}, maxDownloads)
 
 	for i := 0; i < maxDownloads; i++ {
-		maxDL <- nil
+		maxDL <- struct{}{}
 	}
 
 	return &downloadStep{
@@ -94,6 +94,7 @@ func (step *downloadStep) Download(downloads <-chan storage.Download) chan media
 
 				if info.IsDone {
 					downloadedChan <- info.Item
+					step.maxDL <- struct{}{}
 					if err := step.repo.Status(info.Item.UniqueTitle, storage.StatusDownloaded); err != nil {
 						logrus.Errorf("could not update status after download: %s", err)
 						continue
