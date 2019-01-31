@@ -1,24 +1,22 @@
 package cmd
 
 import (
-	"bufio"
 	"database/sql"
-	"fmt"
 	"github.com/nenadstojanovikj/couch/pipeline"
 	"github.com/nenadstojanovikj/couch/pkg/config"
 	"github.com/nenadstojanovikj/couch/pkg/download"
 	"github.com/nenadstojanovikj/couch/pkg/magnet"
 	"github.com/nenadstojanovikj/couch/pkg/media"
+	"github.com/nenadstojanovikj/couch/pkg/mediaprovider"
 	"github.com/nenadstojanovikj/couch/pkg/refresh"
 	"github.com/nenadstojanovikj/couch/pkg/storage"
 	"github.com/nenadstojanovikj/rd"
+	"github.com/nenadstojanovikj/trakt"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
-	"strings"
 	"syscall"
 	"time"
 )
@@ -47,40 +45,48 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 
 		searchItems := make(chan media.Metadata)
 
-		go func() {
-			for {
-				reader := bufio.NewReader(os.Stdin)
-				fmt.Println("Enter TV Show name:")
-				name, _ := reader.ReadString('\n')
-				fmt.Println("Season:")
-				season, _ := reader.ReadString('\n')
-				fmt.Println("Episode:")
-				episode, _ := reader.ReadString('\n')
-				name = strings.Trim(name, "\n")
-				s, _ := strconv.Atoi(strings.Trim(season, "\n"))
-				e, _ := strconv.Atoi(strings.Trim(episode, "\n"))
-				if name != "" && s != 0 && e != 0 {
-					episode := media.NewEpisode(name, s, e)
-					logrus.Debugf("Adding %q for scraping", episode.UniqueTitle)
-					searchItems <- episode
-				}
-				fmt.Println()
-				fmt.Println()
-			}
-		}()
+		// go func() {
+		// 	for {
+		// 		reader := bufio.NewReader(os.Stdin)
+		// 		fmt.Println("Enter TV Show name:")
+		// 		name, _ := reader.ReadString('\n')
+		// 		fmt.Println("Season:")
+		// 		season, _ := reader.ReadString('\n')
+		// 		fmt.Println("Episode:")
+		// 		episode, _ := reader.ReadString('\n')
+		// 		name = strings.Trim(name, "\n")
+		// 		s, _ := strconv.Atoi(strings.Trim(season, "\n"))
+		// 		e, _ := strconv.Atoi(strings.Trim(episode, "\n"))
+		// 		if name != "" && s != 0 && e != 0 {
+		// 			episode := media.NewEpisode(name, s, e)
+		// 			logrus.Debugf("Adding %q for scraping", episode.UniqueTitle)
+		// 			searchItems <- episode
+		// 		}
+		// 		fmt.Println()
+		// 		fmt.Println()
+		// 	}
+		// }()
 
-		// httpClient := &http.Client{Timeout: time.Second * 5}
+		httpClient := &http.Client{Timeout: time.Second * 5}
+
+		traktClient := trakt.NewClient(
+			config.TraktTV.ClientID,
+			config.TraktTV.ClientSecret,
+			createTraktToken(&config.TraktTV),
+			httpClient,
+			nil,
+		)
 
 		// Start polling providers
-		// mediaProviders := []mediaprovider.Poller{
-		// }
-		// pollStep := pipeline.NewPollStep(repo, mediaProviders)
-		// searchItems := pollStep.Poll()
+		mediaProviders := []mediaprovider.Poller{
+			mediaprovider.NewTraktProvider(traktClient),
+		}
+		searchItems = pipeline.NewPollStep(repo, mediaProviders).Poll()
 
 		// TODO Full season torrents?
-		// searchItems <- media.NewEpisode("Punisher", 2, 1)
 
 		// Filter out items that we already have
+		// Scrape by IMDB tag
 		scrapeItems := make(chan media.Metadata)
 		go func() {
 			for item := range searchItems {
@@ -155,5 +161,16 @@ func createToken(conf *config.AuthConfig) rd.Token {
 		ExpiresIn:    conf.ExpiresIn,
 		ObtainedAt:   conf.ObtainedAt,
 		RefreshToken: conf.RefreshToken,
+	}
+}
+
+func createTraktToken(conf *config.AuthConfig) trakt.Token {
+	return trakt.Token{
+		AccessToken:  conf.AccessToken,
+		TokenType:    conf.TokenType,
+		ExpiresIn:    int64(conf.ExpiresIn),
+		CreatedAt:    conf.ObtainedAt.Unix(),
+		RefreshToken: conf.RefreshToken,
+		Scope:        "public",
 	}
 }

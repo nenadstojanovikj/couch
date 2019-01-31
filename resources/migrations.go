@@ -33,7 +33,7 @@ rating INTEGER DEFAULT 1
 
 		// Handled by downloaders
 		`CREATE TABLE realdebrid (
-title TEXT REFERENCES search_items(title),
+title TEXT REFERENCES search_items(title) ON DELETE CASCADE,
 url TEXT NOT NULL UNIQUE,
 destination TEXT NOT NULL,
 error TEXT
