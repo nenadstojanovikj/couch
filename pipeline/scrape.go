@@ -42,10 +42,10 @@ func (step *scrapeStep) Scrape(searchItems <-chan media.Metadata) chan storage.M
 				logrus.Debugf("scraped %q", item.UniqueTitle)
 			}
 
-			// TODO Seeders?
+			// TODO Store Seeders in magnet?
 			processors := []magnet.ProcessFunc{
 				magnet.FilterQuality(storage.QualityHD, storage.Quality4K),
-				magnet.FilterEncoding(storage.Encodingx264, storage.Encodingx265, storage.EncodingHEVC),
+				magnet.FilterEncoding(storage.Encodingx264, storage.Encodingx265),
 				magnet.SortSize(false),
 				magnet.SortEncoding(true),
 				magnet.SortQuality(true),

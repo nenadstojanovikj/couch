@@ -24,7 +24,6 @@ const (
 	EncodingXVID Encoding = "XviD"
 	Encodingx264 Encoding = "x264"
 	Encodingx265 Encoding = "x265"
-	EncodingHEVC Encoding = "HEVC"
 	EncodingVC1  Encoding = "VC-1"
 )
 

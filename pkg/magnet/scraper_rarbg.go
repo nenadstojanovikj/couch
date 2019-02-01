@@ -86,9 +86,8 @@ var categoryEncoding = map[string]storage.Encoding{
 
 var qualityRegex = regexp.MustCompile("2160p|1080p|720p")
 var encodingRegexes = map[storage.Encoding]*regexp.Regexp{
-	storage.EncodingHEVC: regexp.MustCompile("hevc|HEVC"),
 	storage.Encodingx264: regexp.MustCompile("[xXhH]264"),
-	storage.Encodingx265: regexp.MustCompile("[xXhH]265"),
+	storage.Encodingx265: regexp.MustCompile("[xXhH]265|hevc|HEVC"),
 	storage.EncodingXVID: regexp.MustCompile("[xX][vV][iI][dD]"),
 	storage.EncodingVC1:  regexp.MustCompile("vc1|VC1|VC-1|vc-1"),
 }

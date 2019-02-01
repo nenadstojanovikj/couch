@@ -13,7 +13,6 @@ var qualityScore = map[storage.Quality]int{
 }
 
 var encodingScore = map[storage.Encoding]int{
-	storage.EncodingHEVC: 5,
 	storage.Encodingx265: 4,
 	storage.Encodingx264: 3,
 	storage.EncodingVC1:  2,

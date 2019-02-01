@@ -26,7 +26,7 @@ status TEXT NOT NULL CHECK(status in ('Pending', 'Scraped', 'Extracting', 'Downl
 title TEXT REFERENCES search_items(title) ON DELETE CASCADE,
 url TEXT NOT NULL UNIQUE,
 quality TEXT NOT NULL CHECK(quality in ('4K', 'FHD', 'HD', 'SD')),
-encoding TEXT CHECK (encoding in ('x264', 'x265', 'HEVC', 'VC-1', 'XviD')),
+encoding TEXT CHECK (encoding in ('x264', 'x265', 'VC-1', 'XviD')),
 size INTEGER NOT NULL,
 rating INTEGER DEFAULT 1
 )`,
