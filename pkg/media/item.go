@@ -14,42 +14,28 @@ const (
 )
 
 type (
-	// UniqueTitle represents the Movie or TVShow title. Should be generated
-	// through the NewMovie or NewEpisode package methods
-	Title string
-
 	// Type is the type of media
 	Type string
 
-	Metadata struct {
-		Title       string
+	SearchItem struct {
 		UniqueTitle string
+		IMDb        string
 		Type        Type
-
-		// Used if data is about Movie
-		Year int
-
-		// Used if data is about TV Show
-		Season  int
-		Episode int
 	}
 )
 
-func NewMovie(title string, year int) Metadata {
-	return Metadata{
-		Title:       title,
+func NewMovie(title string, year int, imdb string) SearchItem {
+	return SearchItem{
 		UniqueTitle: fmt.Sprintf(FormatMovie, title, year),
 		Type:        TypeMovie,
-		Year:        year,
+		IMDb:        imdb,
 	}
 }
 
-func NewEpisode(title string, season, episode int) Metadata {
-	return Metadata{
-		Title:       title,
+func NewEpisode(title string, season, episode int, imdb string) SearchItem {
+	return SearchItem{
 		UniqueTitle: fmt.Sprintf(FormatEpisode, title, season, episode),
 		Type:        TypeEpisode,
-		Episode:     episode,
-		Season:      season,
+		IMDb:        imdb,
 	}
 }

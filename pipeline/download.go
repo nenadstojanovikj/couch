@@ -40,8 +40,8 @@ func NewDownloadStep(repo *storage.MediaRepository, getter download.Getter, maxD
 	}
 }
 
-func (step *downloadStep) Download(downloads <-chan storage.Download) chan media.Metadata {
-	downloadedChan := make(chan media.Metadata)
+func (step *downloadStep) Download(downloads <-chan storage.Download) chan media.SearchItem {
+	downloadedChan := make(chan media.SearchItem)
 
 	go func() {
 		// Start downloads

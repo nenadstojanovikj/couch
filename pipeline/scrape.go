@@ -20,7 +20,7 @@ func NewScrapeStep(repo *storage.MediaRepository, scrapers []magnet.Scraper) *sc
 }
 
 // TODO Take processors from constructor/config
-func (step *scrapeStep) Scrape(searchItems <-chan media.Metadata) chan storage.Magnet {
+func (step *scrapeStep) Scrape(searchItems <-chan media.SearchItem) chan storage.Magnet {
 	magnetChan := make(chan storage.Magnet)
 	go func() {
 		for item := range searchItems {
@@ -44,7 +44,7 @@ func (step *scrapeStep) Scrape(searchItems <-chan media.Metadata) chan storage.M
 
 			// TODO Store Seeders in magnet?
 			processors := []magnet.ProcessFunc{
-				magnet.FilterQuality(storage.QualityHD, storage.Quality4K),
+				magnet.FilterQuality(storage.QualityFHD, storage.QualityFHD),
 				magnet.FilterEncoding(storage.Encodingx264, storage.Encodingx265),
 				magnet.SortSize(false),
 				magnet.SortEncoding(true),
@@ -76,6 +76,7 @@ func (step *scrapeStep) Scrape(searchItems <-chan media.Metadata) chan storage.M
 
 			// Pushing only the best torrent
 			magnetChan <- magnets[0]
+			logrus.Debugf("pushed magnet %q for download", magnets[0].Location)
 		}
 	}()
 

@@ -7,7 +7,6 @@ import (
 )
 
 const (
-
 	// Possible statuses for the media item
 	StatusPending     Status = "Pending"
 	StatusScraped     Status = "Scraped"
@@ -33,7 +32,7 @@ type (
 
 	// Media is the model used for storing the item's information
 	Media struct {
-		Item media.Metadata
+		Item media.SearchItem
 
 		CreatedAt time.Time
 		UpdatedAt time.Time
@@ -49,9 +48,10 @@ type (
 		Location string
 		Quality  Quality
 		Encoding Encoding
-		Item     media.Metadata
+		Item     media.SearchItem
 		Size     uint64 // Size in bytes
 		Rating   int
+		Seeders  int
 	}
 
 	MediaRepository struct {
@@ -61,7 +61,7 @@ type (
 	Download struct {
 		Location    string
 		Destination string
-		Item        media.Metadata
+		Item        media.SearchItem
 	}
 )
 
@@ -69,7 +69,7 @@ func NewMediaRepository(db *sql.DB) *MediaRepository {
 	return &MediaRepository{db}
 }
 
-func (r *MediaRepository) StoreItem(item media.Metadata) error {
+func (r *MediaRepository) StoreItem(item media.SearchItem) error {
 	now := time.Now().UTC().Format(ISO8601)
 	tx, err := r.db.Begin()
 	if err != nil {

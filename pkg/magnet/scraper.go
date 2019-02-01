@@ -6,5 +6,5 @@ import (
 )
 
 type Scraper interface {
-	Scrape(item media.Metadata) ([]storage.Magnet, error)
+	Scrape(item media.SearchItem) ([]storage.Magnet, error)
 }

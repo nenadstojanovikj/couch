@@ -14,7 +14,7 @@ type TraktProvider struct {
 	trakt *trakt.Client
 }
 
-func (p *TraktProvider) Poll() (metadata []media.Metadata, err error) {
+func (p *TraktProvider) Poll() (metadata []media.SearchItem, err error) {
 	yesterday := time.Now().Add(-time.Hour * 24).Format("2006-01-02")
 
 	episodes, err := p.trakt.Calendar(yesterday, 1)
@@ -22,7 +22,7 @@ func (p *TraktProvider) Poll() (metadata []media.Metadata, err error) {
 		return nil, err
 	}
 	for _, e := range episodes {
-		metadata = append(metadata, media.NewEpisode(e.Show.Title, e.Episode.Season, e.Episode.Number))
+		metadata = append(metadata, media.NewEpisode(e.Show.Title, e.Episode.Season, e.Episode.Number, e.Episode.Providers.IMDb))
 	}
 
 	watchEpisodes, err := p.trakt.WatchlistEpisodes()
@@ -30,7 +30,7 @@ func (p *TraktProvider) Poll() (metadata []media.Metadata, err error) {
 		return nil, err
 	}
 	for _, e := range watchEpisodes {
-		metadata = append(metadata, media.NewEpisode(e.Show.Title, e.Episode.Season, e.Episode.Number))
+		metadata = append(metadata, media.NewEpisode(e.Show.Title, e.Episode.Season, e.Episode.Number, e.Episode.Providers.IMDb))
 	}
 
 	movies, err := p.trakt.WatchlistMovies()
@@ -38,7 +38,7 @@ func (p *TraktProvider) Poll() (metadata []media.Metadata, err error) {
 		return nil, err
 	}
 	for _, m := range movies {
-		metadata = append(metadata, media.NewMovie(m.Movie.Title, m.Movie.Year))
+		metadata = append(metadata, media.NewMovie(m.Movie.Title, m.Movie.Year, m.Movie.Ids.IMDb))
 	}
 
 	return metadata, nil

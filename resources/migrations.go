@@ -11,11 +11,7 @@ func Migrations() []string {
 title TEXT NOT NULL PRIMARY KEY,
 orig_title TEXT NOT NULL,
 type TEXT NOT NULL CHECK(type in ('Movie', 'Episode')),
-
--- Type specific data
-year INTEGER DEFAULT 0,
-season SMALLINT DEFAULT 0,
-episode SMALLINT DEFAULT 0,
+imdb TEXT,
 
 created_at datetime NOT NULL,
 updated_at datetime NOT NULL,

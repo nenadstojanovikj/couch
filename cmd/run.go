@@ -43,7 +43,7 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 
 		logrus.SetLevel(logrus.DebugLevel)
 
-		searchItems := make(chan media.Metadata)
+		searchItems := make(chan media.SearchItem)
 
 		// go func() {
 		// 	for {
@@ -87,7 +87,7 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 
 		// Filter out items that we already have
 		// Scrape by IMDB tag
-		scrapeItems := make(chan media.Metadata)
+		scrapeItems := make(chan media.SearchItem)
 		go func() {
 			for item := range searchItems {
 				m, err := repo.Fetch(item.UniqueTitle)

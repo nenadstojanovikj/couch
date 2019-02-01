@@ -22,8 +22,16 @@ func NewRarbgScraper() (*RarbgScraper, error) {
 	return &RarbgScraper{client: api}, nil
 }
 
-func (s *RarbgScraper) Scrape(item media.Metadata) ([]storage.Magnet, error) {
-	query := s.client.SearchString(string(item.UniqueTitle))
+func (s *RarbgScraper) Scrape(item media.SearchItem) ([]storage.Magnet, error) {
+	query := s.client
+
+	// IMDb gets priority since it's always more specific
+	if item.IMDb != "" {
+		query = s.client.SearchIMDb(item.IMDb)
+	} else {
+		query = s.client.SearchString(string(item.UniqueTitle))
+	}
+
 	query.Format("json_extended")
 	switch item.Type {
 	case media.TypeEpisode:
@@ -57,6 +65,7 @@ func (s *RarbgScraper) Scrape(item media.Metadata) ([]storage.Magnet, error) {
 		magnets[i].Item = item
 		magnets[i].Encoding = parseEncoding(m)
 		magnets[i].Size = m.Size
+		magnets[i].Seeders = m.Seeders
 
 		logrus.Debugf("found magnet %s for %q", m.Download, item.UniqueTitle)
 	}
