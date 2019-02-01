@@ -45,28 +45,6 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 
 		searchItems := make(chan media.SearchItem)
 
-		// go func() {
-		// 	for {
-		// 		reader := bufio.NewReader(os.Stdin)
-		// 		fmt.Println("Enter TV Show name:")
-		// 		name, _ := reader.ReadString('\n')
-		// 		fmt.Println("Season:")
-		// 		season, _ := reader.ReadString('\n')
-		// 		fmt.Println("Episode:")
-		// 		episode, _ := reader.ReadString('\n')
-		// 		name = strings.Trim(name, "\n")
-		// 		s, _ := strconv.Atoi(strings.Trim(season, "\n"))
-		// 		e, _ := strconv.Atoi(strings.Trim(episode, "\n"))
-		// 		if name != "" && s != 0 && e != 0 {
-		// 			episode := media.NewEpisode(name, s, e)
-		// 			logrus.Debugf("Adding %q for scraping", episode.UniqueTitle)
-		// 			searchItems <- episode
-		// 		}
-		// 		fmt.Println()
-		// 		fmt.Println()
-		// 	}
-		// }()
-
 		httpClient := &http.Client{Timeout: time.Second * 5}
 
 		traktClient := trakt.NewClient(

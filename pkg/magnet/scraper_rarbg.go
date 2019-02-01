@@ -28,9 +28,8 @@ func (s *RarbgScraper) Scrape(item media.SearchItem) ([]storage.Magnet, error) {
 	// IMDb gets priority since it's always more specific
 	if item.IMDb != "" {
 		query = s.client.SearchIMDb(item.IMDb)
-	} else {
-		query = s.client.SearchString(string(item.UniqueTitle))
 	}
+	query = s.client.SearchString(string(item.UniqueTitle))
 
 	query.Format("json_extended")
 	switch item.Type {

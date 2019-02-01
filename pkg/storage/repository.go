@@ -76,8 +76,8 @@ func (r *MediaRepository) StoreItem(item media.SearchItem) error {
 		return err
 	}
 	_, err = tx.Exec(
-		"INSERT OR IGNORE INTO search_items (title, type, created_at, updated_at, status) VALUES (?, ?, ?, ?, ?)",
-		item.UniqueTitle, item.Type, now, now, StatusPending,
+		"INSERT OR IGNORE INTO search_items (title, type, imdb, created_at, updated_at, status) VALUES (?, ?, ?, ?, ?, ?)",
+		item.UniqueTitle, item.Type, item.IMDb, now, now, StatusPending,
 	)
 	if err != nil {
 		return err
@@ -118,8 +118,8 @@ func (r *MediaRepository) Delete(title string) error {
 }
 
 func (r *MediaRepository) Fetch(title string) (m Media, err error) {
-	row := r.db.QueryRow("SELECT title, type, status, created_at, updated_at FROM search_items WHERE title = ?", title)
-	err = row.Scan(&m.Item.UniqueTitle, &m.Item.Type, &m.Status, &m.CreatedAt, &m.UpdatedAt)
+	row := r.db.QueryRow("SELECT title, type, status, imdb, created_at, updated_at FROM search_items WHERE title = ?", title)
+	err = row.Scan(&m.Item.UniqueTitle, &m.Item.Type, &m.Status, &m.Item.IMDb, &m.CreatedAt, &m.UpdatedAt)
 	return m, err
 }
 
@@ -153,7 +153,6 @@ WHERE m.status in ('Extracting', 'Downloading')
 func (r *MediaRepository) NonExtractedTorrents() (torrents []Magnet, err error) {
 	query := `SELECT m.title, m.type, t.url, t.size, t.quality, t.encoding, t.rating FROM search_items m
 JOIN torrents t on t.title = m.title
--- JOIN realdebrid l on l.title = t.title AND l.title is NULL
 WHERE m.status in ('Extracting', 'Scraped')
 AND m.title NOT IN (SELECT l.title FROM realdebrid l)
 GROUP BY t.title
