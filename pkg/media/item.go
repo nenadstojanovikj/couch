@@ -20,32 +20,32 @@ type (
 	Type string
 
 	SearchItem struct {
-		UniqueTitle string
-		IMDb        string
-		Type        Type
+		Term string
+		IMDb string
+		Type Type
 	}
 )
 
 func NewMovie(title string, year int, imdb string) SearchItem {
 	return SearchItem{
-		UniqueTitle: fmt.Sprintf(FormatMovie, title, year),
-		Type:        TypeMovie,
-		IMDb:        imdb,
+		Term: fmt.Sprintf(FormatMovie, title, year),
+		Type: TypeMovie,
+		IMDb: imdb,
 	}
 }
 
 func NewEpisode(title string, season, episode int, imdb string) SearchItem {
 	return SearchItem{
-		UniqueTitle: fmt.Sprintf(FormatEpisode, title, season, episode),
-		Type:        TypeEpisode,
-		IMDb:        imdb,
+		Term: fmt.Sprintf(FormatEpisode, title, season, episode),
+		Type: TypeEpisode,
+		IMDb: imdb,
 	}
 }
 
 func NewSeason(title string, season int, imdb string) SearchItem {
 	return SearchItem{
-		UniqueTitle: fmt.Sprintf(FormatSeason, title, season),
-		Type:        TypeSeason,
-		IMDb:        imdb,
+		Term: fmt.Sprintf(FormatSeason, title, season),
+		Type: TypeSeason,
+		IMDb: imdb,
 	}
 }

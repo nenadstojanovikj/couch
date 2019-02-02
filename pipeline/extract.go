@@ -40,17 +40,17 @@ func (step *extractStep) Extract(magnetChan chan storage.Magnet) chan storage.Do
 	go func() {
 		for mag := range magnetChan {
 			step.mu.Lock()
-			if _, ok := step.currentExtracts[mag.Item.UniqueTitle]; ok {
+			if _, ok := step.currentExtracts[mag.Item.Term]; ok {
 				step.mu.Unlock()
-				logrus.Debugf("skipped extract of %q as it is in progress", mag.Item.UniqueTitle)
+				logrus.Debugf("skipped extract of %q as it is in progress", mag.Item.Term)
 				continue
 			}
-			step.currentExtracts[mag.Item.UniqueTitle] = nil
+			step.currentExtracts[mag.Item.Term] = nil
 			step.mu.Unlock()
 
 			go func(m storage.Magnet) {
-				logrus.Debugf("extracting %q", m.Item.UniqueTitle)
-				if err := step.repo.Status(m.Item.UniqueTitle, storage.StatusExtracting); err != nil {
+				logrus.Debugf("extracting %q", m.Item.Term)
+				if err := step.repo.Status(m.Item.Term, storage.StatusExtracting); err != nil {
 					logrus.Errorf("could not update status after download: %s", err)
 				}
 
@@ -73,7 +73,7 @@ func (step *extractStep) Extract(magnetChan chan storage.Magnet) chan storage.Do
 						dlLocation.Destination = path.Join(step.config.MoviesPath, path.Base(url))
 					case media.TypeEpisode:
 					case media.TypeSeason:
-						matches := tvShowRegex.FindAllStringSubmatch(string(m.Item.UniqueTitle), -1)
+						matches := tvShowRegex.FindAllStringSubmatch(string(m.Item.Term), -1)
 						name := matches[0][1]
 						season, _ := strconv.Atoi(matches[0][2])
 
@@ -83,7 +83,7 @@ func (step *extractStep) Extract(magnetChan chan storage.Magnet) chan storage.Do
 					dlLocation.Item = m.Item
 
 					if err := step.repo.AddDownload(dlLocation); err != nil {
-						logrus.Errorf("could not add download for %q: %s", dlLocation.Item.UniqueTitle, err)
+						logrus.Errorf("could not add download for %q: %s", dlLocation.Item.Term, err)
 						continue
 					}
 

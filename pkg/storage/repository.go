@@ -77,7 +77,7 @@ func (r *MediaRepository) StoreItem(item media.SearchItem) error {
 	}
 	_, err = tx.Exec(
 		"INSERT OR IGNORE INTO search_items (title, type, imdb, created_at, updated_at, status) VALUES (?, ?, ?, ?, ?, ?)",
-		item.UniqueTitle, item.Type, item.IMDb, now, now, StatusPending,
+		item.Term, item.Type, item.IMDb, now, now, StatusPending,
 	)
 	if err != nil {
 		return err
@@ -94,7 +94,7 @@ func (r *MediaRepository) AddDownload(download Download) error {
 
 	_, err = tx.Exec(
 		"INSERT OR IGNORE INTO realdebrid (title, url, destination) VALUES (?, ?, ?)",
-		download.Item.UniqueTitle,
+		download.Item.Term,
 		download.Location,
 		download.Destination,
 	)
@@ -107,7 +107,7 @@ func (r *MediaRepository) AddDownload(download Download) error {
 
 func (r *MediaRepository) AddTorrent(t Magnet) error {
 	_, err := r.db.Exec(`INSERT OR IGNORE INTO torrents (title, url, quality, encoding, rating, size) VALUES (?, ?, ?, ?, ?, ?)`,
-		t.Item.UniqueTitle, t.Location, t.Quality, t.Encoding, t.Rating, t.Size)
+		t.Item.Term, t.Location, t.Quality, t.Encoding, t.Rating, t.Size)
 
 	return err
 }
@@ -119,7 +119,7 @@ func (r *MediaRepository) Delete(title string) error {
 
 func (r *MediaRepository) Fetch(title string) (m Media, err error) {
 	row := r.db.QueryRow("SELECT title, type, status, imdb, created_at, updated_at FROM search_items WHERE title = ?", title)
-	err = row.Scan(&m.Item.UniqueTitle, &m.Item.Type, &m.Status, &m.Item.IMDb, &m.CreatedAt, &m.UpdatedAt)
+	err = row.Scan(&m.Item.Term, &m.Item.Type, &m.Status, &m.Item.IMDb, &m.CreatedAt, &m.UpdatedAt)
 	return m, err
 }
 
@@ -141,7 +141,7 @@ WHERE m.status in ('Extracting', 'Downloading')
 
 	for rows.Next() {
 		var d Download
-		err = rows.Scan(&d.Item.UniqueTitle, &d.Item.Type, &d.Location, &d.Destination)
+		err = rows.Scan(&d.Item.Term, &d.Item.Type, &d.Location, &d.Destination)
 		if err != nil {
 			return
 		}
@@ -166,7 +166,7 @@ ORDER BY t.rating ASC;
 
 	for rows.Next() {
 		var t Magnet
-		err = rows.Scan(&t.Item.UniqueTitle, &t.Item.Type, &t.Location, &t.Size, &t.Quality, &t.Encoding, &t.Rating)
+		err = rows.Scan(&t.Item.Term, &t.Item.Type, &t.Location, &t.Size, &t.Quality, &t.Encoding, &t.Rating)
 		if err != nil {
 			return
 		}

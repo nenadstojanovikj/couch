@@ -40,10 +40,7 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 	return func(cmd *cobra.Command, args []string) {
 		stop := make(chan os.Signal)
 		signal.Notify(stop, os.Interrupt, os.Kill, syscall.SIGTERM)
-
 		logrus.SetLevel(logrus.DebugLevel)
-
-		searchItems := make(chan media.SearchItem)
 
 		httpClient := &http.Client{Timeout: time.Second * 5}
 
@@ -59,22 +56,18 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 		mediaProviders := []mediaprovider.Poller{
 			mediaprovider.NewTraktProvider(traktClient),
 		}
-		searchItems = pipeline.NewPollStep(repo, mediaProviders).Poll()
+		searchItems := pipeline.NewPollStep(repo, mediaProviders).Poll()
 
-		// TODO Full season torrents?
-
-		// Filter out items that we already have
-		// Scrape by IMDB tag
 		scrapeItems := make(chan media.SearchItem)
 		go func() {
 			for item := range searchItems {
-				m, err := repo.Fetch(item.UniqueTitle)
+				m, err := repo.Fetch(item.Term)
 
 				if err == sql.ErrNoRows || m.Status == storage.StatusPending {
 					scrapeItems <- item
-					logrus.Infof("pushing %q for scraping", item.UniqueTitle)
+					logrus.Infof("pushing %q for scraping", item.Term)
 				} else {
-					logrus.Infof("skipping %q for scraping", item.UniqueTitle)
+					logrus.Infof("skipping %q for scraping, already in database", item.Term)
 				}
 			}
 		}()
@@ -84,7 +77,6 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 		if err != nil {
 			logrus.Fatalf("could not initialize rarbg: %s", err)
 		}
-
 		magnetChan := pipeline.NewScrapeStep(repo, []magnet.Scraper{rarbgScraper}).Scrape(scrapeItems)
 
 		// Extract links from magnets
@@ -95,9 +87,7 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 		)
 
 		downloadLocations := pipeline.NewExtractStep(repo, rdExtractor, config).Extract(magnetChan)
-
 		movieDownloader := download.NewHttpDownloader()
-
 		downloadedItems := pipeline.NewDownloadStep(repo, movieDownloader, config.MaximumDownloadFiles).Download(downloadLocations)
 
 		// Periodic pollers
@@ -124,7 +114,7 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 		// Download notifier
 		go func() {
 			for item := range downloadedItems {
-				logrus.Debugf("Downloaded %q", item.UniqueTitle)
+				logrus.Debugf("Downloaded %q", item.Term)
 			}
 		}()
 

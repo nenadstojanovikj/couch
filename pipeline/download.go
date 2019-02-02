@@ -66,7 +66,7 @@ func (step *downloadStep) Download(downloads <-chan storage.Download) chan media
 				continue
 			}
 
-			if err := step.repo.Status(dl.Item.UniqueTitle, storage.StatusDownloading); err != nil {
+			if err := step.repo.Status(dl.Item.Term, storage.StatusDownloading); err != nil {
 				logrus.Errorf("could not update status after download: %s", err)
 			}
 
@@ -86,7 +86,7 @@ func (step *downloadStep) Download(downloads <-chan storage.Download) chan media
 				}
 
 				if info.Error != nil {
-					if err := step.repo.Status(info.Item.UniqueTitle, storage.StatusError); err != nil {
+					if err := step.repo.Status(info.Item.Term, storage.StatusError); err != nil {
 						logrus.Errorf("could not update status to error: %s", err)
 						continue
 					}
@@ -97,13 +97,13 @@ func (step *downloadStep) Download(downloads <-chan storage.Download) chan media
 					downloadedChan <- info.Item
 					step.maxDL <- struct{}{}
 					// TODO Download progress for season torrents
-					if err := step.repo.Status(info.Item.UniqueTitle, storage.StatusDownloaded); err != nil {
+					if err := step.repo.Status(info.Item.Term, storage.StatusDownloaded); err != nil {
 						logrus.Errorf("could not update status after download: %s", err)
 						continue
 					}
 				}
 
-				logrus.Debugf("completed download for %q", info.Item.UniqueTitle)
+				logrus.Debugf("completed download for %q", info.Item.Term)
 				delete(step.informers, index)
 			}
 			time.Sleep(time.Second * 5)

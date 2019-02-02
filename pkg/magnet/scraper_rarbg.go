@@ -30,7 +30,7 @@ func (s *RarbgScraper) Scrape(item media.SearchItem) ([]storage.Magnet, error) {
 	if item.IMDb != "" {
 		query = s.client.SearchIMDb(item.IMDb)
 	}
-	query = s.client.SearchString(fmt.Sprintf("%q", item.UniqueTitle))
+	query = s.client.SearchString(fmt.Sprintf("%q", item.Term))
 
 	query.Format("json_extended")
 	switch item.Type {
@@ -85,7 +85,7 @@ func (s *RarbgScraper) filterByType(item media.SearchItem, results torrentapi.To
 		magnets[i].Size = m.Size
 		magnets[i].Seeders = m.Seeders
 
-		logrus.Debugf("found magnet %s for %q", m.Download, item.UniqueTitle)
+		logrus.Debugf("found magnet %s for %q", m.Download, item.Term)
 	}
 
 	return magnets

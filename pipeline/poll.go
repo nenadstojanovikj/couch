@@ -34,7 +34,7 @@ func (step *pollStep) Poll() chan media.SearchItem {
 				}
 
 				for _, item := range items {
-					logrus.Debugf("fetched %q for searching", item.UniqueTitle)
+					logrus.Debugf("fetched %q for searching", item.Term)
 					searchItems <- item
 				}
 

@@ -24,10 +24,10 @@ func (step *scrapeStep) Scrape(searchItems <-chan media.SearchItem) chan storage
 	magnetChan := make(chan storage.Magnet)
 	go func() {
 		for item := range searchItems {
-			logrus.Debugf("scraping %q", item.UniqueTitle)
+			logrus.Debugf("scraping %q", item.Term)
 			err := step.repo.StoreItem(item)
 			if err != nil {
-				logrus.Errorf("could not store %q: %s", item.UniqueTitle, err)
+				logrus.Errorf("could not store %q: %s", item.Term, err)
 				continue
 			}
 
@@ -35,11 +35,11 @@ func (step *scrapeStep) Scrape(searchItems <-chan media.SearchItem) chan storage
 			for _, s := range step.scrapers {
 				items, err := s.Scrape(item)
 				if err != nil {
-					logrus.Errorf("could not scrape %q: %s", item.UniqueTitle, err)
+					logrus.Errorf("could not scrape %q: %s", item.Term, err)
 					continue
 				}
 				magnets = append(magnets, items...)
-				logrus.Debugf("scraped %q", item.UniqueTitle)
+				logrus.Debugf("scraped %q", item.Term)
 			}
 
 			// TODO Store Seeders in magnet?
@@ -65,11 +65,11 @@ func (step *scrapeStep) Scrape(searchItems <-chan media.SearchItem) chan storage
 			}
 
 			if len(magnets) == 0 {
-				logrus.Warnf("no magnets for %q", item.UniqueTitle)
+				logrus.Warnf("no magnets for %q", item.Term)
 				continue
 			}
 
-			if err := step.repo.Status(item.UniqueTitle, storage.StatusScraped); err != nil {
+			if err := step.repo.Status(item.Term, storage.StatusScraped); err != nil {
 				logrus.Errorf("error while updating status in database: %s", err)
 				continue
 			}

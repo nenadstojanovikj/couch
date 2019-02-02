@@ -16,17 +16,17 @@ type TraktProvider struct {
 }
 
 func (p *TraktProvider) Poll() (metadata []media.SearchItem, err error) {
-	// yesterday := time.Now().Add(-time.Hour * 24).Format("2006-01-02")
 	var removeMeta trakt.FullMetadata
 
-	// episodes, err := p.trakt.Calendar(yesterday, 1)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// for _, e := range episodes {
-	// 	metadata = append(metadata, media.NewEpisode(e.Show.Title, e.Episode.Season, e.Episode.Number, e.Show.IDs.IMDb))
-	// 	removeMeta.Episodes = append(removeMeta.Episodes, e.Episode)
-	// }
+	yesterday := time.Now().Add(-time.Hour * 24).Format("2006-01-02")
+	episodes, err := p.trakt.Calendar(yesterday, 1)
+	if err != nil {
+		return nil, err
+	}
+	for _, e := range episodes {
+		metadata = append(metadata, media.NewEpisode(e.Show.Title, e.Episode.Season, e.Episode.Number, e.Show.IDs.IMDb))
+		removeMeta.Episodes = append(removeMeta.Episodes, e.Episode)
+	}
 
 	watchEpisodes, err := p.trakt.WatchlistEpisodes()
 	if err != nil {
