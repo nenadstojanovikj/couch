@@ -10,7 +10,7 @@ func Migrations() []string {
 		`CREATE TABLE search_items (
 title TEXT NOT NULL PRIMARY KEY,
 orig_title TEXT NOT NULL,
-type TEXT NOT NULL CHECK(type in ('Movie', 'Episode')),
+type TEXT NOT NULL CHECK(type in ('Movie', 'Episode', 'Season')),
 imdb TEXT,
 
 created_at datetime NOT NULL,

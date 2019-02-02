@@ -2,6 +2,8 @@ package magnet
 
 import (
 	"fmt"
+	"github.com/nenadstojanovikj/couch/pkg/media"
+	"github.com/nenadstojanovikj/couch/pkg/storage"
 	"github.com/nenadstojanovikj/rd"
 	"github.com/sirupsen/logrus"
 	"sort"
@@ -24,10 +26,10 @@ func NewRealDebridExtractor(debrid *rd.RealDebrid, pollInterval time.Duration, d
 	}
 }
 
-func (ex *RealDebridExtractor) Extract(magnet string) ([]string, error) {
+func (ex *RealDebridExtractor) Extract(magnet storage.Magnet) ([]string, error) {
 	// Check for maximum number of torrents
 
-	info, err := ex.debrid.Torrents.AddMagnetLinkSimple(magnet)
+	info, err := ex.debrid.Torrents.AddMagnetLinkSimple(magnet.Location)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +47,7 @@ loop:
 		// Select Video files and start download
 		case rd.StatusWaitingFiles:
 			// TODO Check if we need to download the whole torrent
-			fileIDs := extractFileIDs(torrent, ex.downloadAll)
+			fileIDs := ex.extractFileIDs(torrent, magnet, ex.downloadAll)
 			if err := ex.debrid.Torrents.SelectFilesFromTorrent(torrent.ID, fileIDs); err != nil {
 				return nil, fmt.Errorf("extractor: could not select files for download: %s", err)
 			}
@@ -78,7 +80,7 @@ loop:
 	return links, nil
 }
 
-func extractFileIDs(torrentInfo rd.TorrentInfo, extractAll bool) []int {
+func (ex *RealDebridExtractor) extractFileIDs(torrentInfo rd.TorrentInfo, magnet storage.Magnet, extractAll bool) []int {
 	// Get everything
 	if extractAll {
 		ids := make([]int, len(torrentInfo.Files))
@@ -97,11 +99,24 @@ func extractFileIDs(torrentInfo rd.TorrentInfo, extractAll bool) []int {
 		candidateFiles = append(candidateFiles, f)
 	}
 
+	// Some torrent files have
 	sort.SliceStable(candidateFiles, func(i, j int) bool {
 		return candidateFiles[i].Bytes < candidateFiles[j].Bytes
 	})
 
-	return []int{candidateFiles[len(candidateFiles)-1].ID}
+	switch magnet.Item.Type {
+	case media.TypeEpisode:
+	case media.TypeMovie:
+		return []int{candidateFiles[len(candidateFiles)-1].ID}
+	case media.TypeSeason:
+		ids := make([]int, len(candidateFiles))
+		for i, r := range candidateFiles {
+			ids[i] = r.ID
+		}
+		return ids
+	}
+
+	return []int{0}
 }
 
 func checkSuffix(path string) bool {

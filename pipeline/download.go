@@ -46,7 +46,7 @@ func (step *downloadStep) Download(downloads <-chan storage.Download) chan media
 	go func() {
 		// Start downloads
 		for dl := range downloads {
-			logrus.Debugf("started download for %q", dl.Location)
+			logrus.Debugf("queuing download for %q", dl.Location)
 			step.mu.Lock()
 			if _, ok := step.currentDownloads[dl.Location]; ok {
 				logrus.Debugf("skipped download for %q, already in progress", dl.Location)
@@ -59,6 +59,7 @@ func (step *downloadStep) Download(downloads <-chan storage.Download) chan media
 			// Take a token or wait until one is available
 			<-step.maxDL
 
+			logrus.Debugf("started download for %q", dl.Location)
 			informer, err := step.getter.Get(dl.Item, dl.Location, dl.Destination)
 			if err != nil {
 				logrus.Errorf("error during download: %s", err)
@@ -95,6 +96,7 @@ func (step *downloadStep) Download(downloads <-chan storage.Download) chan media
 				if info.IsDone {
 					downloadedChan <- info.Item
 					step.maxDL <- struct{}{}
+					// TODO Download progress for season torrents
 					if err := step.repo.Status(info.Item.UniqueTitle, storage.StatusDownloaded); err != nil {
 						logrus.Errorf("could not update status after download: %s", err)
 						continue

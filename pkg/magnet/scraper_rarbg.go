@@ -1,6 +1,7 @@
 package magnet
 
 import (
+	"fmt"
 	"github.com/nenadstojanovikj/couch/pkg/media"
 	"github.com/nenadstojanovikj/couch/pkg/storage"
 	"github.com/qopher/go-torrentapi"
@@ -29,11 +30,12 @@ func (s *RarbgScraper) Scrape(item media.SearchItem) ([]storage.Magnet, error) {
 	if item.IMDb != "" {
 		query = s.client.SearchIMDb(item.IMDb)
 	}
-	query = s.client.SearchString(string(item.UniqueTitle))
+	query = s.client.SearchString(fmt.Sprintf("%q", item.UniqueTitle))
 
 	query.Format("json_extended")
 	switch item.Type {
 	case media.TypeEpisode:
+	case media.TypeSeason:
 		query.
 			Category(18). // TV Episodes
 			Category(41). // TV HD Episodes
@@ -57,8 +59,25 @@ func (s *RarbgScraper) Scrape(item media.SearchItem) ([]storage.Magnet, error) {
 		return nil, err
 	}
 
-	magnets := make([]storage.Magnet, len(results))
-	for i, m := range results {
+	magnets := s.filterByType(item, results)
+
+	return magnets, nil
+}
+
+func (s *RarbgScraper) filterByType(item media.SearchItem, results torrentapi.TorrentResults) []storage.Magnet {
+	var filteredResults torrentapi.TorrentResults
+
+	if item.Type == media.TypeSeason {
+		for _, r := range results {
+			if r.EpisodeInfo.EpisodeNum != "1000000" {
+				continue
+			}
+			filteredResults = append(filteredResults, r)
+		}
+	}
+
+	magnets := make([]storage.Magnet, len(filteredResults))
+	for i, m := range filteredResults {
 		magnets[i].Location = m.Download
 		magnets[i].Quality = parseQuality(m)
 		magnets[i].Item = item
@@ -69,7 +88,7 @@ func (s *RarbgScraper) Scrape(item media.SearchItem) ([]storage.Magnet, error) {
 		logrus.Debugf("found magnet %s for %q", m.Download, item.UniqueTitle)
 	}
 
-	return magnets, nil
+	return magnets
 }
 
 var categoryQuality = map[string]storage.Quality{

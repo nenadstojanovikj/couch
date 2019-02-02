@@ -33,7 +33,7 @@ func NewExtractStep(repo *storage.MediaRepository, extractor magnet.Extractor, c
 	}
 }
 
-var tvShowRegex = regexp.MustCompile("(.*) S([0-9]{2})E([0-9]{2})")
+var tvShowRegex = regexp.MustCompile("(.*) S([0-9]{2})")
 
 func (step *extractStep) Extract(magnetChan chan storage.Magnet) chan storage.Download {
 	dlMap := make(chan storage.Download, 10)
@@ -54,7 +54,7 @@ func (step *extractStep) Extract(magnetChan chan storage.Magnet) chan storage.Do
 					logrus.Errorf("could not update status after download: %s", err)
 				}
 
-				urls, err := step.extractor.Extract(m.Location)
+				urls, err := step.extractor.Extract(m)
 				if err != nil {
 					logrus.Errorf("could not extract link %s: %s", m.Location, err)
 					return
@@ -72,6 +72,7 @@ func (step *extractStep) Extract(magnetChan chan storage.Magnet) chan storage.Do
 						// Decide if file needs to be renamed
 						dlLocation.Destination = path.Join(step.config.MoviesPath, path.Base(url))
 					case media.TypeEpisode:
+					case media.TypeSeason:
 						matches := tvShowRegex.FindAllStringSubmatch(string(m.Item.UniqueTitle), -1)
 						name := matches[0][1]
 						season, _ := strconv.Atoi(matches[0][2])
