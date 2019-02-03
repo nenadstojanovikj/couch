@@ -9,7 +9,6 @@ func Migrations() []string {
 		// Search data
 		`CREATE TABLE search_items (
 title TEXT NOT NULL PRIMARY KEY,
-orig_title TEXT NOT NULL,
 type TEXT NOT NULL CHECK(type in ('Movie', 'Episode', 'Season')),
 imdb TEXT,
 
@@ -32,14 +31,7 @@ rating INTEGER DEFAULT 1
 title TEXT REFERENCES search_items(title) ON DELETE CASCADE,
 url TEXT NOT NULL UNIQUE,
 destination TEXT NOT NULL,
-error TEXT
-)`,
-		`CREATE TABLE torrent_files (
-title TEXT REFERENCES search_items(title),
-magnet TEXT NOT NULL,
-url TEXT NOT NULL UNIQUE,
-destination TEXT NOT NULL,
-error TEXT
+status TEXT NOT NULL CHECK(status in ('Error', 'Downloading', 'Downloaded'))
 )`,
 	}
 }

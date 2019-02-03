@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/nenadstojanovikj/couch/resources"
+	"github.com/sirupsen/logrus"
 )
 
 const ISO8601 string = "2006-01-02 03:04:05.000"
@@ -19,7 +20,7 @@ func NewCouchDatabase(filename string) (*sql.DB, error) {
 	newMigrations := resources.Migrations()[version:]
 
 	// Apply the migrations one by one
-	for _, mig := range newMigrations {
+	for i, mig := range newMigrations {
 		tx, err := db.Begin()
 		if err != nil {
 			return nil, err
@@ -42,6 +43,7 @@ func NewCouchDatabase(filename string) (*sql.DB, error) {
 			}
 			return nil, err
 		}
+		logrus.Debugf("applied migration %d successfully", i)
 	}
 
 	return db, err

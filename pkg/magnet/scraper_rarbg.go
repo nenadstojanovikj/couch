@@ -74,10 +74,11 @@ func (s *RarbgScraper) filterByType(item media.SearchItem, results torrentapi.To
 			}
 			filteredResults = append(filteredResults, r)
 		}
+		results = filteredResults
 	}
 
-	magnets := make([]storage.Magnet, len(filteredResults))
-	for i, m := range filteredResults {
+	magnets := make([]storage.Magnet, len(results))
+	for i, m := range results {
 		magnets[i].Location = m.Download
 		magnets[i].Quality = parseQuality(m)
 		magnets[i].Item = item

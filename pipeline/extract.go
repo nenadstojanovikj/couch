@@ -57,6 +57,9 @@ func (step *extractStep) Extract(magnetChan chan storage.Magnet) chan storage.Do
 				urls, err := step.extractor.Extract(m)
 				if err != nil {
 					logrus.Errorf("could not extract link %s: %s", m.Location, err)
+					step.mu.Lock()
+					delete(step.currentExtracts, mag.Item.Term)
+					step.mu.Unlock()
 					return
 				}
 
@@ -77,7 +80,6 @@ func (step *extractStep) Extract(magnetChan chan storage.Magnet) chan storage.Do
 						name := matches[0][1]
 						season, _ := strconv.Atoi(matches[0][2])
 
-						// TODO Check if TV Shows are in separate dirs
 						dlLocation.Destination = path.Join(step.config.TVShowsPath, fmt.Sprintf("%s/Season %d/%s", name, season, path.Base(url)))
 					}
 					dlLocation.Item = m.Item

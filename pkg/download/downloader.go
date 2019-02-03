@@ -12,6 +12,7 @@ type Info struct {
 	DownloadedBytes int64
 	IsDone          bool
 	Error           error
+	Url             string
 }
 
 // Progress returns the progress of the file from 0 to 1

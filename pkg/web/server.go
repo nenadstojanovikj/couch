@@ -10,11 +10,11 @@ const templateDir = "web/templates/"
 
 func NewWebServer(port int) *http.Server {
 	mux := &http.ServeMux{}
-    mux.HandleFunc("/", showIndex)
+	mux.HandleFunc("/", showIndex)
 
 	return &http.Server{
-		Addr:fmt.Sprintf(":%d", port),
-		Handler:mux,
+		Addr:    fmt.Sprintf(":%d", port),
+		Handler: mux,
 	}
 }
 

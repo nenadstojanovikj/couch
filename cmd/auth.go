@@ -27,20 +27,21 @@ func NewAuthCommand(config *config.Config) *cobra.Command {
 }
 
 func realdebrid(conf *config.Config) func(command *cobra.Command, args []string) {
+	rdClientId := "X245A4XAIBGVM"
 	return func(cmd *cobra.Command, args []string) {
 		auth := rd.NewAuthClient(http.DefaultClient)
-		creds, err := auth.StartAuthentication(rd.OpenSourceClientId)
+		creds, err := auth.StartAuthentication(rdClientId)
 		if err != nil {
 			panic(err)
 		}
 
-		fmt.Printf("Direct URL: %s\n\n%s\nCode: %s\n", creds.DirectVerificationURL, creds.VerificationURL, creds.UserCode)
+		fmt.Printf("Direct Url: %s\n\n%s\nCode: %s\n", creds.DirectVerificationURL, creds.VerificationURL, creds.UserCode)
 		tries := creds.ExpiresIn / creds.Interval
 		var token rd.Token
 
 		for i := 1; i <= tries; i++ {
 			time.Sleep(time.Duration(creds.Interval) * time.Second)
-			secrets, err := auth.ObtainSecret(creds.DeviceCode, rd.OpenSourceClientId)
+			secrets, err := auth.ObtainSecret(creds.DeviceCode, rdClientId)
 			if err != nil {
 				fmt.Printf("Still not verified, retrying (%d/%d) - Ctrl+C to cancel\n", i, tries)
 				continue

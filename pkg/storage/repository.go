@@ -2,6 +2,7 @@ package storage
 
 import (
 	"database/sql"
+	"github.com/nenadstojanovikj/couch/pkg/download"
 	"github.com/nenadstojanovikj/couch/pkg/media"
 	"time"
 )
@@ -76,7 +77,7 @@ func (r *MediaRepository) StoreItem(item media.SearchItem) error {
 		return err
 	}
 	_, err = tx.Exec(
-		"INSERT OR IGNORE INTO search_items (title, type, imdb, created_at, updated_at, status) VALUES (?, ?, ?, ?, ?, ?)",
+		"INSERT INTO search_items (title, type, imdb, created_at, updated_at, status) VALUES (?, ?, ?, ?, ?, ?)",
 		item.Term, item.Type, item.IMDb, now, now, StatusPending,
 	)
 	if err != nil {
@@ -93,10 +94,11 @@ func (r *MediaRepository) AddDownload(download Download) error {
 	}
 
 	_, err = tx.Exec(
-		"INSERT OR IGNORE INTO realdebrid (title, url, destination) VALUES (?, ?, ?)",
+		"INSERT OR IGNORE INTO realdebrid (title, url, destination, status) VALUES (?, ?, ?, ?)",
 		download.Item.Term,
 		download.Location,
 		download.Destination,
+		"Downloading",
 	)
 	if err != nil {
 		return err
@@ -131,7 +133,7 @@ func (r *MediaRepository) Status(title string, status Status) error {
 func (r *MediaRepository) InProgressDownloads() (downloads []Download, err error) {
 	query := `SELECT m.title, m.type, l.url, l.destination FROM search_items m
 JOIN realdebrid l on l.title = m.title
-WHERE m.status in ('Extracting', 'Downloading')
+WHERE m.status in ('Extracting', 'Downloading', 'Error')
 `
 
 	rows, err := r.db.Query(query)
@@ -173,4 +175,54 @@ ORDER BY t.rating ASC;
 		torrents = append(torrents, t)
 	}
 	return torrents, nil
+}
+
+func (r *MediaRepository) UpdateDownload(informer download.Informer) error {
+	info := informer.Info()
+	status := "Downloading"
+	if info.Error != nil {
+		status = "Error"
+	} else if info.IsDone {
+		status = "Downloaded"
+	}
+
+	tx, err := r.db.Begin()
+
+	_, err = tx.Exec(
+		"UPDATE realdebrid SET status = ? WHERE url = ?",
+		status,
+		info.Url,
+	)
+
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	var errors, downloading, downloaded int
+	term := info.Item.Term
+
+	row := tx.QueryRow(`SELECT 
+       count(CASE WHEN status = 'Error' THEN status END) as error,
+       count(CASE WHEN status = 'Downloading' THEN status END) as downloading,
+       count(CASE WHEN status = 'Downloaded' THEN status END) as downloaded
+FROM realdebrid WHERE title = ?`, term)
+
+	if err := row.Scan(&errors, &downloading, &downloaded); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if errors > 0 {
+		status = "Error"
+	} else if downloading > 0 {
+		status = "Downloading"
+	}
+
+	if _, err := tx.Exec("UPDATE search_items SET status = ? WHERE title = ?", status, term); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit()
 }

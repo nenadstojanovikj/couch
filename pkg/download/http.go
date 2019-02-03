@@ -9,7 +9,7 @@ type HttpDownloader struct {
 	grab *grab.Client
 }
 
-type GrabFile struct {
+type grabFile struct {
 	response *grab.Response
 	item     media.SearchItem
 }
@@ -20,7 +20,7 @@ func NewHttpDownloader() *HttpDownloader {
 	}
 }
 
-func (f *GrabFile) Info() *Info {
+func (f *grabFile) Info() *Info {
 	var err error
 	if f.response.IsComplete() {
 		err = f.response.Err()
@@ -33,6 +33,7 @@ func (f *GrabFile) Info() *Info {
 		Filepath:        f.response.Filename,
 		TotalBytes:      f.response.Size,
 		DownloadedBytes: f.response.BytesComplete(),
+		Url:             f.response.Request.URL().String(),
 	}
 }
 
@@ -42,5 +43,5 @@ func (d *HttpDownloader) Get(item media.SearchItem, url string, destination stri
 		return nil, err
 	}
 
-	return &GrabFile{response: d.grab.Do(req), item: item}, nil
+	return &grabFile{response: d.grab.Do(req), item: item}, nil
 }
