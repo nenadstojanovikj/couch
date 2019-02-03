@@ -61,6 +61,9 @@ loop:
 
 		// Only exit the loop when the torrent is successfully downloaded
 		case rd.StatusDownloaded:
+			if err := ex.debrid.Torrents.Delete(torrent.ID); err != nil {
+				logrus.Warnf("failed to delete torrent in realdebrid: %s", err)
+			}
 			break loop
 		}
 		logrus.Debugf("waiting on RealDebrid, progress %d", torrent.Progress)
