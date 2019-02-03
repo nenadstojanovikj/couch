@@ -134,6 +134,7 @@ func (r *MediaRepository) InProgressDownloads() (downloads []Download, err error
 	query := `SELECT m.title, m.type, l.url, l.destination FROM search_items m
 JOIN realdebrid l on l.title = m.title
 WHERE m.status in ('Extracting', 'Downloading', 'Error')
+AND l.status in ('Error', 'Downloading');
 `
 
 	rows, err := r.db.Query(query)

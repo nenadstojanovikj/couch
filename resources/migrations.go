@@ -6,6 +6,10 @@ func Migrations() []string {
 
 		`INSERT INTO version values (0)`,
 
+		`CREATE TABLE config (config TEXT)`,
+
+		`INSERT INTO config values ('{}');`,
+
 		// Search data
 		`CREATE TABLE search_items (
 title TEXT NOT NULL PRIMARY KEY,
@@ -23,15 +27,13 @@ url TEXT NOT NULL UNIQUE,
 quality TEXT NOT NULL CHECK(quality in ('4K', 'FHD', 'HD', 'SD')),
 encoding TEXT CHECK (encoding in ('x264', 'x265', 'VC-1', 'XviD')),
 size INTEGER NOT NULL,
-rating INTEGER DEFAULT 1
-)`,
+rating INTEGER DEFAULT 0)`,
 
 		// Handled by downloaders
 		`CREATE TABLE realdebrid (
 title TEXT REFERENCES search_items(title) ON DELETE CASCADE,
 url TEXT NOT NULL UNIQUE,
 destination TEXT NOT NULL,
-status TEXT NOT NULL CHECK(status in ('Error', 'Downloading', 'Downloaded'))
-)`,
+status TEXT NOT NULL CHECK(status in ('Error', 'Downloading', 'Downloaded')))`,
 	}
 }

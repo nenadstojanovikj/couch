@@ -46,7 +46,7 @@ func (step *downloadStep) Download(downloads <-chan storage.Download) chan media
 	go func() {
 		// Start downloads
 		for dl := range downloads {
-			logrus.Debugf("queuing download for %q", dl.Location)
+			logrus.Debugf("queueing download for %q", dl.Location)
 			if err := step.repo.AddDownload(dl); err != nil {
 				logrus.Errorf("error while adding a download link: %s", err)
 				continue

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/nenadstojanovikj/couch/pkg/config"
 	"github.com/nenadstojanovikj/rd"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"net/http"
 	"os"
@@ -61,7 +62,7 @@ func realdebrid(conf *config.Config) func(command *cobra.Command, args []string)
 			conf.RealDebrid.TokenType = token.TokenType
 
 			if err := conf.Save(); err != nil {
-				fmt.Println(err)
+				logrus.Error(err)
 				os.Exit(1)
 			}
 			break

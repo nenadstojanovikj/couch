@@ -1,9 +1,9 @@
 package config
 
 import (
+	"database/sql"
 	"encoding/json"
-	"os"
-	"sync"
+	"os/user"
 	"time"
 )
 
@@ -21,50 +21,53 @@ type AuthConfig struct {
 }
 
 type Config struct {
-	configPath string
-	mu         sync.Mutex
+	db *sql.DB
+
+	Port int `json:"port"`
 
 	MoviesPath  string `json:"movies_path"`
 	TVShowsPath string `json:"tvshows_path"`
 
-	MaximumDownloadSpeed string     `json:"maximum_download_speed"`
-	MaximumDownloadFiles int        `json:"maximum_download_files"`
-	RealDebrid           AuthConfig `json:"real_debrid"`
-	TraktTV              AuthConfig `json:"trakt_tv"`
-	Port                 int        `json:"port"`
+	ConcurrentDownloadFiles int `json:"concurrent_download_files"`
+
+	RealDebrid AuthConfig `json:"real_debrid"`
+	Trakt      AuthConfig `json:"trakt_tv"`
 }
 
-func NewConfiguration() Config {
-	return Config{}
+func NewConfiguration(db *sql.DB) Config {
+	u, err := user.Current()
+	if err != nil {
+		panic(err)
+	}
+
+	return Config{
+		db:                      db,
+		Port:                    8080,
+		MoviesPath:              u.HomeDir + "/Movies",
+		TVShowsPath:             u.HomeDir + "/TVShows",
+		ConcurrentDownloadFiles: 3,
+	}
 }
 
-func (c *Config) LoadFromFile(path string) error {
-	file, err := os.Open(path)
+func (c *Config) Load() error {
+	row := c.db.QueryRow("SELECT config FROM config LIMIT 1;")
+
+	var j []byte
+	err := row.Scan(&j)
 	if err != nil {
 		return err
 	}
 
-	c.configPath = path
-
-	return json.NewDecoder(file).Decode(c)
+	return json.Unmarshal(j, &c)
 }
 
 func (c *Config) Save() error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	file, err := os.Create(c.configPath + ".tmp")
-	if err != nil {
-		return err
-	}
-
 	// Indenting so it's human readable for easier inspection
 	bytes, err := json.MarshalIndent(c, "", "    ")
 	if err != nil {
 		return err
 	}
-	if _, err = file.Write(bytes); err != nil {
-		return err
-	}
 
-	return os.Rename(c.configPath+".tmp", c.configPath)
+	_, err = c.db.Exec("UPDATE config SET config = ?", bytes)
+	return err
 }

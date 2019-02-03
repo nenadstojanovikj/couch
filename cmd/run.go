@@ -45,9 +45,9 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 		httpClient := &http.Client{Timeout: time.Second * 5}
 
 		traktClient := trakt.NewClient(
-			config.TraktTV.ClientID,
-			config.TraktTV.ClientSecret,
-			createTraktToken(&config.TraktTV),
+			config.Trakt.ClientID,
+			config.Trakt.ClientSecret,
+			createTraktToken(&config.Trakt),
 			httpClient,
 			nil,
 		)
@@ -88,7 +88,7 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 
 		downloadLocations := pipeline.NewExtractStep(repo, rdExtractor, config).Extract(magnetChan)
 		movieDownloader := download.NewHttpDownloader()
-		downloadedItems := pipeline.NewDownloadStep(repo, movieDownloader, config.MaximumDownloadFiles).Download(downloadLocations)
+		downloadedItems := pipeline.NewDownloadStep(repo, movieDownloader, config.ConcurrentDownloadFiles).Download(downloadLocations)
 
 		// Periodic pollers
 		go func() {

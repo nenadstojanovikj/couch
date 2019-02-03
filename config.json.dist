@@ -2,8 +2,7 @@
     "port": 8080,
     "movies_path": "/mnt/exhdd/Movies",
     "tvshows_path": "/mnt/exhdd/TVShows",
-    "maximum_download_speed": "100M",
-    "maximum_download_files": 5,
+    "concurrent_download_files": 5,
     "real_debrid": {
         "client_id": "AAAAA",
         "client_secret": "bbbbb",
@@ -23,4 +22,3 @@
         "token_type": ""
     }
 }
-
