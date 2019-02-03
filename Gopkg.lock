@@ -42,12 +42,12 @@
   version = "v1.10.0"
 
 [[projects]]
-  digest = "1:1354d1a4cac38b62644dd3c4a15ebce5e1cab39027dffe92fcdd07f18817c966"
+  digest = "1:2fdc4c96ba7a8117102ed9c149c4597ccfcf1590cd386c69fe100b40dfeb163e"
   name = "github.com/nenadstojanovikj/rd"
   packages = ["."]
   pruneopts = "UT"
-  revision = "3e07daf1001f66588efe4be73381fdf3d0553280"
-  version = "v0.0.8"
+  revision = "b021fc399d1fdc2f30982cf4ed574a7e1bfeae3f"
+  version = "v0.0.9"
 
 [[projects]]
   branch = "master"
@@ -122,7 +122,7 @@
     "windows",
   ]
   pruneopts = "UT"
-  revision = "afcc84fd7533758f95a6e93ae710aa945a0b7e73"
+  revision = "7ae0202eb74c2b534255c71b5a15fa4115aabbcc"
 
 [solve-meta]
   analyzer-name = "dep"

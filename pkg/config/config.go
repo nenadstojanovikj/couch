@@ -15,7 +15,7 @@ type AuthConfig struct {
 	ClientSecret string    `json:"client_secret"`
 	AccessToken  string    `json:"access_token"`
 	RefreshToken string    `json:"refresh_token"`
-	ExpiresIn    int       `json:"expires_in"`
+	ExpiresIn    int64     `json:"expires_in"`
 	ObtainedAt   time.Time `json:"obtained_at"`
 	TokenType    string    `json:"token_type"`
 }
