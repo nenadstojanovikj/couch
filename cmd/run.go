@@ -23,8 +23,10 @@ import (
 
 func NewAppCommand(config *config.Config, repo *storage.MediaRepository) *cobra.Command {
 	return &cobra.Command{
-		Use: "run",
-		Run: run(config, repo),
+		Use:   "run",
+		Run:   run(config, repo),
+		Short: "Runs the application",
+		Long:  "Starts a web server and a daemon that will download files",
 	}
 }
 

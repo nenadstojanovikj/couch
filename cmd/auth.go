@@ -17,20 +17,21 @@ import (
 
 func NewAuthCommand(config *config.Config) *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "auth",
-		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("Usage: auth [realdebrid,trakt]")
-		},
+		Use:   "auth",
+		Short: "Starts authentication process",
+		Long:  "Starts CLI auth process for selected service",
 	}
 
 	cmd.AddCommand(&cobra.Command{
-		Use: "realdebrid",
-		Run: realdebrid(config),
+		Use:   "realdebrid",
+		Run:   realdebrid(config),
+		Short: "Auth procedure for RealDebrid service",
 	})
 
 	cmd.AddCommand(&cobra.Command{
-		Use: "trakt",
-		Run: trakttv(config),
+		Use:   "trakt",
+		Run:   trakttv(config),
+		Short: "Auth procedure for trakt.tv service",
 	})
 
 	return cmd

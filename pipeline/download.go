@@ -103,7 +103,7 @@ func (step *downloadStep) Download(downloads <-chan storage.Download) chan media
 					continue
 				}
 
-				logrus.Debugf("completed download for %q", info.Item.Term)
+				logrus.Debugf("completed download for %q", info.Url)
 				delete(step.informers, index)
 			}
 			time.Sleep(time.Second * 5)
