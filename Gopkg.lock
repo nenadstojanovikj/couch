@@ -42,12 +42,12 @@
   version = "v1.10.0"
 
 [[projects]]
-  digest = "1:2fdc4c96ba7a8117102ed9c149c4597ccfcf1590cd386c69fe100b40dfeb163e"
+  digest = "1:b85b659643b230d4aee851aab65cc285b66a47764fba85f3257e42aaab35be66"
   name = "github.com/nenadstojanovikj/rd"
   packages = ["."]
   pruneopts = "UT"
-  revision = "b021fc399d1fdc2f30982cf4ed574a7e1bfeae3f"
-  version = "v0.0.9"
+  revision = "03ccd7b335158358001646f8d98d0165894ffe10"
+  version = "v0.0.10"
 
 [[projects]]
   branch = "master"

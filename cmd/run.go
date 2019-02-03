@@ -44,6 +44,7 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 	return func(cmd *cobra.Command, args []string) {
 		stop := make(chan os.Signal)
 		signal.Notify(stop, os.Interrupt, os.Kill, syscall.SIGTERM)
+		logrus.SetOutput(os.Stdout)
 		logrus.SetLevel(logrus.DebugLevel)
 		server := web.NewWebServer(config)
 
