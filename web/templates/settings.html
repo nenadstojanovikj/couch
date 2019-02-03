@@ -1,0 +1,29 @@
+{{ define "settings" }}
+<!DOCTYPE html>
+<html lang="en">
+{{ template "header" }}
+<body>
+    {{ template "navbar" }}
+    <div class="container">
+        <form>
+            <div class="form-group">
+                <label for="portInput">Web server port</label>
+                <input type="number" class="form-control" id="portInput" placeholder="8080" value="{{ .Port }}">
+            </div>
+            <div class="form-group">
+                <label for="movieInput">Movie directory</label>
+                <input type="text" class="form-control" id="movieInput" placeholder="/home/user/Movies" value="{{ .MovieDirectory }}">
+            </div>
+            <div class="form-group">
+                <label for="tvshowInput">TV Show directory</label>
+                <input type="text" class="form-control" id="tvshowInput" placeholder="/home/user/TVShows" value="{{ .TVShowDirectory }}">
+            </div>
+
+            <button id="update" type="button" class="btn btn-primary">Save</button>
+        </form>
+    </div>
+    {{ template "footer" }}
+    {{ template "config.js" . }}
+</body>
+</html>
+{{ end }}

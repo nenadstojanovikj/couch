@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"database/sql"
 	"github.com/nenadstojanovikj/couch/pipeline"
 	"github.com/nenadstojanovikj/couch/pkg/config"
@@ -10,6 +11,7 @@ import (
 	"github.com/nenadstojanovikj/couch/pkg/mediaprovider"
 	"github.com/nenadstojanovikj/couch/pkg/refresh"
 	"github.com/nenadstojanovikj/couch/pkg/storage"
+	"github.com/nenadstojanovikj/couch/pkg/web"
 	"github.com/nenadstojanovikj/rd"
 	"github.com/nenadstojanovikj/trakt"
 	"github.com/sirupsen/logrus"
@@ -43,6 +45,13 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 		stop := make(chan os.Signal)
 		signal.Notify(stop, os.Interrupt, os.Kill, syscall.SIGTERM)
 		logrus.SetLevel(logrus.DebugLevel)
+		server := web.NewWebServer(config)
+
+		go func() {
+			if err := server.ListenAndServe(); err != nil {
+				logrus.Errorf("web server failed to run: %s", err)
+			}
+		}()
 
 		httpClient := &http.Client{Timeout: time.Second * 5}
 
@@ -121,6 +130,7 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 		}()
 
 		<-stop
+		_ = server.Shutdown(context.TODO())
 	}
 }
 

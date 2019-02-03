@@ -1,0 +1,28 @@
+{{ define "config.js" }}
+<script>
+
+
+document.getElementById("update").addEventListener('click', event => {
+    let movieDir = document.getElementById("movieInput").value;
+    let tvShowDir = document.getElementById("tvshowInput").value;
+    let port = parseInt(document.getElementById("portInput").value);
+
+    window.fetch("http://localhost:{{ .Port }}/updateSettings", {
+        method: "POST",
+        body: JSON.stringify({
+            "movies_path": movieDir,
+            "tvshows_path": tvShowDir,
+            "port": port,
+        })
+    }).then(function (response) {
+        if (response.status !== 200) {
+            window.alert("Failed to update settings! " + response.body.toString());
+        } else {
+            window.alert("Updated settings!");
+        }
+    })
+});
+
+
+</script>
+{{ end }}

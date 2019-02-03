@@ -1,31 +1,67 @@
 package web
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/nenadstojanovikj/couch/pkg/config"
+	"github.com/sirupsen/logrus"
 	"html/template"
 	"net/http"
 )
 
 const templateDir = "web/templates/"
 
-func NewWebServer(port int) *http.Server {
+func NewWebServer(config *config.Config) *http.Server {
 	mux := &http.ServeMux{}
-	mux.HandleFunc("/", showIndex)
+	mux.HandleFunc("/updateSettings", updateConfig(config))
+	mux.HandleFunc("/", showIndex(config))
 
 	return &http.Server{
-		Addr:    fmt.Sprintf(":%d", port),
+		Addr:    fmt.Sprintf(":%d", config.Port),
 		Handler: mux,
 	}
 }
 
-func showIndex(w http.ResponseWriter, r *http.Request) {
-	t := template.New("index")
-	t, err := template.ParseFiles(templateDir + "header.html")
-	if err != nil {
-		_, _ = w.Write([]byte(err.Error()))
-		return
+func updateConfig(config *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := json.NewDecoder(r.Body).Decode(config); err != nil {
+			w.WriteHeader(400)
+			_, _ = w.Write([]byte(fmt.Sprintf("error occurred: %s", err)))
+			return
+		}
+
+		if err := config.Save(); err != nil {
+			w.WriteHeader(400)
+			_, _ = w.Write([]byte(fmt.Sprintf("error occurred: %s", err)))
+			return
+		}
+
+		w.WriteHeader(200)
 	}
-	_ = t.Execute(w, struct {
-		Name string
-	}{Name: "nenad"})
+}
+
+func showIndex(config *config.Config) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		t := template.New("main")
+		t, err := template.ParseGlob(templateDir + "*")
+		if err != nil {
+			_, _ = w.Write([]byte(err.Error()))
+			return
+		}
+		err = t.ExecuteTemplate(w, "settings", struct {
+			Port            int
+			MovieDirectory  string
+			TVShowDirectory string
+		}{
+			Port:            config.Port,
+			TVShowDirectory: config.TVShowsPath,
+			MovieDirectory:  config.MoviesPath,
+		})
+
+		if err != nil {
+			logrus.Error(err)
+		}
+
+		logrus.Debugf("rendered page")
+	}
 }
