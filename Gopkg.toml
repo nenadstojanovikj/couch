@@ -1,6 +1,10 @@
 [[constraint]]
   name = "github.com/nenadstojanovikj/rd"
-  version = "0.0.7"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/nenadstojanovikj/trakt"
+  branch = "master"
 
 [[constraint]]
   name = "github.com/spf13/cobra"

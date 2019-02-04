@@ -42,20 +42,20 @@
   version = "v1.10.0"
 
 [[projects]]
-  digest = "1:b85b659643b230d4aee851aab65cc285b66a47764fba85f3257e42aaab35be66"
+  branch = "master"
+  digest = "1:6c29702a2c491e72a72dc0285253bbba5ba1cd830b94899d5915dd6454edd206"
   name = "github.com/nenadstojanovikj/rd"
   packages = ["."]
   pruneopts = "UT"
-  revision = "03ccd7b335158358001646f8d98d0165894ffe10"
-  version = "v0.0.10"
+  revision = "9ca1ca7f0500eaebddfe1c90c71078178c6289de"
 
 [[projects]]
   branch = "master"
-  digest = "1:66ab3805edf02f6eaadaed315ae7cb849dacf2b1c16efc40b9be3bc9ccdb64c8"
+  digest = "1:8be4b863b849d06716bd661c71bf0e9d38f7a83f53caec9a28508d117eb9d672"
   name = "github.com/nenadstojanovikj/trakt"
   packages = ["."]
   pruneopts = "UT"
-  revision = "5fedbcd44bc7d8c3ea0b7fd0147f60f2e7fe1bf0"
+  revision = "846f0c75551e69562bd782912882156ae2da352e"
 
 [[projects]]
   digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
@@ -115,14 +115,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:653cc9ff57cf744d21f74e811af4f330415284bfc291d28f716833618c02c876"
+  digest = "1:a1914323eabb0da3b4392fb0d34b1ae5b6b531323daf4eeddc355d8000982052"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "7ae0202eb74c2b534255c71b5a15fa4115aabbcc"
+  revision = "41f3e6584952bb034a481797859f6ab34b6803bd"
 
 [solve-meta]
   analyzer-name = "dep"

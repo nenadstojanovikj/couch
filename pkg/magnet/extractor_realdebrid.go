@@ -53,10 +53,7 @@ loop:
 			}
 
 		// Return error if we cannot download the torrent for some reason
-		case rd.StatusDead:
-		case rd.StatusMagnetError:
-		case rd.StatusVirus:
-		case rd.StatusError:
+		case rd.StatusDead, rd.StatusMagnetError, rd.StatusVirus, rd.StatusError:
 			return nil, fmt.Errorf("extractor: could not download torrent %s, status %s", torrent.ID, torrent.Status)
 
 		// Only exit the loop when the torrent is successfully downloaded
@@ -108,8 +105,7 @@ func (ex *RealDebridExtractor) extractFileIDs(torrentInfo rd.TorrentInfo, magnet
 	})
 
 	switch magnet.Item.Type {
-	case media.TypeEpisode:
-	case media.TypeMovie:
+	case media.TypeEpisode, media.TypeMovie:
 		return []int{candidateFiles[len(candidateFiles)-1].ID}
 	case media.TypeSeason:
 		ids := make([]int, len(candidateFiles))

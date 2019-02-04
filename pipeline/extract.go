@@ -74,8 +74,7 @@ func (step *extractStep) Extract(magnetChan chan storage.Magnet) chan storage.Do
 					case media.TypeMovie:
 						// Decide if file needs to be renamed
 						dlLocation.Destination = path.Join(step.config.MoviesPath, path.Base(url))
-					case media.TypeEpisode:
-					case media.TypeSeason:
+					case media.TypeEpisode, media.TypeSeason:
 						matches := tvShowRegex.FindAllStringSubmatch(string(m.Item.Term), -1)
 						name := matches[0][1]
 						season, _ := strconv.Atoi(matches[0][2])

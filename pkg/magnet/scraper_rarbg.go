@@ -34,8 +34,7 @@ func (s *RarbgScraper) Scrape(item media.SearchItem) ([]storage.Magnet, error) {
 
 	query.Format("json_extended")
 	switch item.Type {
-	case media.TypeEpisode:
-	case media.TypeSeason:
+	case media.TypeEpisode, media.TypeSeason:
 		query.
 			Category(18). // TV Episodes
 			Category(41). // TV HD Episodes
