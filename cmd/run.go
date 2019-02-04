@@ -54,7 +54,7 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 			}
 		}()
 
-		httpClient := &http.Client{Timeout: time.Second * 5}
+		httpClient := &http.Client{Timeout: time.Second * 10}
 
 		traktClient := trakt.NewClient(
 			config.Trakt.ClientID,

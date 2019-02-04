@@ -29,8 +29,7 @@ func (step *pollStep) Poll() chan media.SearchItem {
 			for {
 				items, err := provider.Poll()
 				if err != nil {
-					logrus.Errorf("could not poll %t: %s", provider, err)
-					continue
+					logrus.Errorf("could not poll %T: %s", provider, err)
 				}
 
 				for _, item := range items {
