@@ -9,8 +9,13 @@ import (
 )
 
 func main() {
+	var dbName = os.Getenv("COUCH_DB")
 
-	db, err := storage.NewCouchDatabase("couch.sqlite")
+	if dbName == "" {
+		dbName = "couch.sqlite"
+	}
+
+	db, err := storage.NewCouchDatabase(dbName)
 	if err != nil {
 		logrus.Errorf("error while creating a database: %s", err)
 		os.Exit(1)
