@@ -25,11 +25,6 @@ func (step *scrapeStep) Scrape(searchItems <-chan media.SearchItem) chan storage
 	go func() {
 		for item := range searchItems {
 			logrus.Debugf("scraping %q", item.Term)
-			err := step.repo.StoreItem(item)
-			if err != nil {
-				logrus.Errorf("could not store %q: %s", item.Term, err)
-				continue
-			}
 
 			var magnets []storage.Magnet
 			for _, s := range step.scrapers {

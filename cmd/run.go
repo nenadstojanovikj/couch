@@ -75,12 +75,24 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 			for item := range searchItems {
 				m, err := repo.Fetch(item.Term)
 
-				if err == sql.ErrNoRows || m.Status == storage.StatusPending {
+				if m.Status == storage.StatusPending {
+					scrapeItems <- item
+					continue
+				}
+
+				if err == sql.ErrNoRows {
+					err := repo.StoreItem(item)
+					if err != nil {
+						logrus.Errorf("could not store %q: %s", item.Term, err)
+						continue
+					}
+
 					scrapeItems <- item
 					logrus.Infof("pushing %q for scraping", item.Term)
-				} else {
-					logrus.Infof("skipping %q for scraping, already in database", item.Term)
+					continue
 				}
+
+				logrus.Infof("skipping %q for scraping, already in database", item.Term)
 			}
 		}()
 
