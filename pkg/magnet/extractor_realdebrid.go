@@ -7,6 +7,7 @@ import (
 	"github.com/nenadstojanovikj/rd"
 	"github.com/sirupsen/logrus"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -29,9 +30,9 @@ func NewRealDebridExtractor(debrid *rd.RealDebrid, pollInterval time.Duration, d
 func (ex *RealDebridExtractor) Extract(magnet storage.Magnet) ([]string, error) {
 	// Check for maximum number of torrents
 
-	info, err := ex.debrid.Torrents.AddMagnetLinkSimple(magnet.Location)
+	info, err := ex.AddOrGetTorrentUrl(magnet.Location)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("extractor: could not add torrent: %s", err)
 	}
 
 	var torrent rd.TorrentInfo
@@ -116,6 +117,30 @@ func (ex *RealDebridExtractor) extractFileIDs(torrentInfo rd.TorrentInfo, magnet
 	}
 
 	return []int{0}
+}
+
+func (ex *RealDebridExtractor) AddOrGetTorrentUrl(magnet string) (info rd.TorrentUrlInfo, err error) {
+	info, err = ex.debrid.Torrents.AddMagnetLinkSimple(magnet)
+	if err == nil {
+		return info, nil
+	}
+	logrus.Warnf("could not add magnet, probably one is already active: %s", err)
+
+	torrents, err := ex.debrid.Torrents.GetTorrents(true)
+	if err != nil {
+		return info, fmt.Errorf("could not get list of active torrents: %s", err)
+	}
+
+	for _, t := range torrents {
+		if strings.Contains(magnet, t.Hash) {
+			return rd.TorrentUrlInfo{
+				ID:  t.ID,
+				URI: "https://api.real-debrid.com/rest/1.0/torrents/info/" + t.ID,
+			}, nil
+		}
+	}
+
+	return info, fmt.Errorf("could not add magnet, and magnet is not active")
 }
 
 func checkSuffix(path string) bool {
