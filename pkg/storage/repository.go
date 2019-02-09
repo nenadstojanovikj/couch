@@ -2,7 +2,6 @@ package storage
 
 import (
 	"database/sql"
-	"github.com/nenadstojanovikj/couch/pkg/download"
 	"github.com/nenadstojanovikj/couch/pkg/media"
 	"time"
 )
@@ -178,12 +177,11 @@ ORDER BY t.rating ASC;
 	return torrents, nil
 }
 
-func (r *MediaRepository) UpdateDownload(informer download.Informer) error {
-	info := informer.Info()
+func (r *MediaRepository) UpdateDownload(term, url string, isDone bool, err error) error {
 	status := "Downloading"
-	if info.Error != nil {
+	if err != nil {
 		status = "Error"
-	} else if info.IsDone {
+	} else if isDone {
 		status = "Downloaded"
 	}
 
@@ -192,7 +190,7 @@ func (r *MediaRepository) UpdateDownload(informer download.Informer) error {
 	_, err = tx.Exec(
 		"UPDATE realdebrid SET status = ? WHERE url = ?",
 		status,
-		info.Url,
+		url,
 	)
 
 	if err != nil {
@@ -201,7 +199,6 @@ func (r *MediaRepository) UpdateDownload(informer download.Informer) error {
 	}
 
 	var errors, downloading, downloaded int
-	term := info.Item.Term
 
 	row := tx.QueryRow(`SELECT 
        count(CASE WHEN status = 'Error' THEN status END) as error,

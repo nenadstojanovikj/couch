@@ -71,7 +71,9 @@ func (step *downloadStep) Download(downloads <-chan storage.Download) chan media
 				continue
 			}
 
-			if err := step.repo.UpdateDownload(informer); err != nil {
+			info := informer.Info()
+
+			if err := step.repo.UpdateDownload(dl.Item.Term, info.Filepath, info.IsDone, info.Error); err != nil {
 				logrus.Errorf("could not update status before download: %s", err)
 			}
 
@@ -98,7 +100,7 @@ func (step *downloadStep) Download(downloads <-chan storage.Download) chan media
 				}
 
 				step.maxDL <- struct{}{}
-				if err := step.repo.UpdateDownload(informer); err != nil {
+				if err := step.repo.UpdateDownload(info.Item.Term, info.Url, info.IsDone, info.Error); err != nil {
 					logrus.Errorf("could not update status after download: %s", err)
 					continue
 				}
