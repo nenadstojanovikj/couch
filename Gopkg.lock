@@ -2,6 +2,128 @@
 
 
 [[projects]]
+  digest = "1:72fff13e105db55c6d4b1acb69216b88d9d3009433f43d7df3488f842b0b6929"
+  name = "github.com/RoaringBitmap/roaring"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "3d677d3262197ee558b85029301eb69b8239f91a"
+  version = "v0.4.16"
+
+[[projects]]
+  digest = "1:f0040a7dbc898ae0c0bac89192ab844f7ad3583b7a1219c7bca0b4589070d0d0"
+  name = "github.com/anacrolix/dht"
+  packages = [
+    ".",
+    "krpc",
+  ]
+  pruneopts = "UT"
+  revision = "283d75724ca7500b3fc29750cba8da17242b9db2"
+  version = "v1.0.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:f67b70c9dd6e033e5c020d61fd5f2668424b326b8262de0e8be9f9eece363d14"
+  name = "github.com/anacrolix/go-libutp"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "aebbeb60ea05ff6da8454a6afbbb961490ac5b1f"
+
+[[projects]]
+  digest = "1:d405cd75865ebbfd541460cc9dd847aaf6a3e3fb08ed2e08029322a99ebcdd2f"
+  name = "github.com/anacrolix/log"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "22e92eff2153b0c2371b8052458d21c50a0beae7"
+  version = "v0.2.0"
+
+[[projects]]
+  digest = "1:2b3100439ddaa80873f4ca39e35f89b89801612a25bbc4c42d59797802c18850"
+  name = "github.com/anacrolix/missinggo"
+  packages = [
+    ".",
+    "bitmap",
+    "conntrack",
+    "expect",
+    "httptoo",
+    "inproc",
+    "iter",
+    "mime",
+    "orderedmap",
+    "perf",
+    "pproffd",
+    "prioritybitmap",
+    "pubsub",
+    "resource",
+    "slices",
+    "x",
+  ]
+  pruneopts = "UT"
+  revision = "cb6c13c0090099c4d350be2679d11c190c6f10a1"
+  version = "v0.1.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:26f2e8da5e7d4b3ebdebac5da81a1f617960a97efe82139b5f251623024d0895"
+  name = "github.com/anacrolix/mmsg"
+  packages = [
+    ".",
+    "socket",
+  ]
+  pruneopts = "UT"
+  revision = "5adb2c1127c0320bcebc8b13189db19493090cd4"
+
+[[projects]]
+  branch = "master"
+  digest = "1:3adb53977686df2c767d57feaba122fa813df4b7d7a8a79c0bfcb47222e57ffc"
+  name = "github.com/anacrolix/sync"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "44578de4e778a60bb7a9c15ab60b3f0b0311a53a"
+
+[[projects]]
+  branch = "master"
+  digest = "1:f0cd4b41abbdb3db4879e663feb65feac6b7c8e34f2b54d792a08b4ee8f1d12b"
+  name = "github.com/anacrolix/torrent"
+  packages = [
+    ".",
+    "bencode",
+    "iplist",
+    "logonce",
+    "metainfo",
+    "mmap_span",
+    "mse",
+    "peer_protocol",
+    "storage",
+    "tracker",
+  ]
+  pruneopts = "UT"
+  revision = "b102ce901ad9f1e7f45ac81ea2bd47e9bf449286"
+
+[[projects]]
+  branch = "master"
+  digest = "1:c8c563c60665dd4b185e3c042d12e915b3dd6129d5477ae313914dce59c7319d"
+  name = "github.com/anacrolix/utp"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "9e0e1d1d0572f5a09a669d4ea0372d8e8078dcc9"
+
+[[projects]]
+  digest = "1:0f98f59e9a2f4070d66f0c9c39561f68fcd1dc837b22a852d28d0003aebd1b1e"
+  name = "github.com/boltdb/bolt"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8"
+  version = "v1.3.1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:7bfd6f49553eb9409ecde1d0311fdcc4944a887d9fff23415f74b7bd462d95a4"
+  name = "github.com/bradfitz/iter"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "454541ec3da2a73fc34fd049b19ee5777bf19345"
+
+[[projects]]
   digest = "1:92af3af7106897c682e665f62136f343708e293e62792578a5753af0473c7975"
   name = "github.com/cavaliercoder/grab"
   packages = ["."]
@@ -16,6 +138,62 @@
   pruneopts = "UT"
   revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
   version = "v1.1.1"
+
+[[projects]]
+  digest = "1:6f9339c912bbdda81302633ad7e99a28dfa5a639c864061f1929510a9a64aa74"
+  name = "github.com/dustin/go-humanize"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "9f541cc9db5d55bce703bd99987c9d5cb8eea45e"
+  version = "v1.0.0"
+
+[[projects]]
+  digest = "1:edb569dd02419a41ddd98768cc0e7aec922ef19dae139731e5ca750afcf6f4c5"
+  name = "github.com/edsrzf/mmap-go"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "188cc3b666ba704534fa4f96e9e61f21f1e1ba7c"
+  version = "v1.0.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:87d8f1070e73e3dacde758c0377c1f4cd8ded02feab0208d1b83d40f90aa615a"
+  name = "github.com/elgatito/upnp"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "2f244d205f9a45e5e5c7ecd79c8d67c656e682a0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:dc925a7d0f70e394be6a79f060b06dfdecfabdc88cfd1cfa1c9d9462c6edca1f"
+  name = "github.com/glycerine/go-unsnap-stream"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "f9677308dec2b35e76737f9713df328ad11b1fea"
+
+[[projects]]
+  branch = "master"
+  digest = "1:4a0c6bb4805508a6287675fac876be2ac1182539ca8a32468d8128882e9d5009"
+  name = "github.com/golang/snappy"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "2e65f85255dbc3072edf28d6b5b8efc472979f5a"
+
+[[projects]]
+  branch = "master"
+  digest = "1:0bfbe13936953a98ae3cfe8ed6670d396ad81edf069a806d2f6515d7bb6950df"
+  name = "github.com/google/btree"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "4030bb1f1f0c35b30ca7009e9ebd06849dd45306"
+
+[[projects]]
+  digest = "1:f9a5e090336881be43cfc1cf468330c1bdd60abdc9dd194e0b1ab69f4b94dd7c"
+  name = "github.com/huandu/xstrings"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "f02667b379e2fb5916c3cda2cf31e0eb885d79f8"
+  version = "v1.2.0"
 
 [[projects]]
   digest = "1:870d441fe217b8e689d7949fef6e43efbc787e50f200cb1e70dbca9204a1d6be"
@@ -43,6 +221,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:c22fdadfe2de0e1df75987cac34f1c721157dc24f180c76b4ef66a3c9637a799"
+  name = "github.com/mschoch/smat"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "90eadee771aeab36e8bf796039b8c261bebebe4f"
+
+[[projects]]
+  branch = "master"
   digest = "1:6c29702a2c491e72a72dc0285253bbba5ba1cd830b94899d5915dd6454edd206"
   name = "github.com/nenadstojanovikj/rd"
   packages = ["."]
@@ -56,6 +242,38 @@
   packages = ["."]
   pruneopts = "UT"
   revision = "846f0c75551e69562bd782912882156ae2da352e"
+
+[[projects]]
+  digest = "1:5b3b29ce0e569f62935d9541dff2e16cc09df981ebde48e82259076a73a3d0c7"
+  name = "github.com/op/go-logging"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "b2cb9fa56473e98db8caba80237377e83fe44db5"
+  version = "v1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:3bf17a6e6eaa6ad24152148a631d18662f7212e21637c2699bff3369b7f00fa2"
+  name = "github.com/petar/GoLLRB"
+  packages = ["llrb"]
+  pruneopts = "UT"
+  revision = "53be0d36a84c2a886ca057d34b6aa4468df9ccb4"
+
+[[projects]]
+  digest = "1:5e73b34a27d827212102605789de00bd411b2e434812133c83935fe9897c75e1"
+  name = "github.com/philhofer/fwd"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "bb6d471dc95d4fe11e432687f8b70ff496cf3136"
+  version = "v1.0.0"
+
+[[projects]]
+  digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
+  version = "v0.8.1"
 
 [[projects]]
   digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
@@ -74,12 +292,28 @@
   revision = "2fa27345de9cb3a4932f29ca2b4845cba508be8d"
 
 [[projects]]
+  branch = "master"
+  digest = "1:8bc4ea931d51467ab9dd8c1fb6213625e7ac1de24a4883e992a1b0b713a8d1eb"
+  name = "github.com/ryszard/goskiplist"
+  packages = ["skiplist"]
+  pruneopts = "UT"
+  revision = "2dfbae5fcf46374f166f8969cb07e167f1be6273"
+
+[[projects]]
   digest = "1:87c2e02fb01c27060ccc5ba7c5a407cc91147726f8f40b70cceeedbc52b1f3a8"
   name = "github.com/sirupsen/logrus"
   packages = ["."]
   pruneopts = "UT"
   revision = "e1e72e9de974bd926e5c56f83753fba2df402ce5"
   version = "v1.3.0"
+
+[[projects]]
+  digest = "1:919bb3aa6d9d0b67648c219fa4925312bc3c2872da19e818fa769e9c97a2b643"
+  name = "github.com/spaolacci/murmur3"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "9f5d223c60793748f04a9d5b4b4eacddfc1f755d"
+  version = "v1.1"
 
 [[projects]]
   branch = "master"
@@ -106,12 +340,47 @@
   version = "v1.3.0"
 
 [[projects]]
+  digest = "1:c97e8a5e5c435c3287f581cdb4441ba34577ec6ead8422bfedafa6269af7abf6"
+  name = "github.com/tinylib/msgp"
+  packages = ["msgp"]
+  pruneopts = "UT"
+  revision = "af6442a0fcf6e2a1b824f70dd0c734f01e817751"
+  version = "v1.1.0"
+
+[[projects]]
+  digest = "1:211f9cf21d532e2da93a420426d714af492743f4c602389cb0cd14ec8eebe256"
+  name = "github.com/willf/bitset"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "e553b05586428962bf7058d1044519d87ca72d74"
+  version = "v1.1.9"
+
+[[projects]]
+  digest = "1:306c3d1c8a92c718566e815d0c98d58071465036ec7e9b543cc4d6ae10c1c983"
+  name = "github.com/willf/bloom"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "54e3b963ee1652b06c4562cb9b6020ebc6e36e59"
+  version = "v2.0.3"
+
+[[projects]]
   branch = "master"
   digest = "1:fde12c4da6237363bf36b81b59aa36a43d28061167ec4acb0d41fc49464e28b9"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   pruneopts = "UT"
   revision = "b8fe1690c61389d7d2a8074a507d1d40c5d30448"
+
+[[projects]]
+  branch = "master"
+  digest = "1:0a004b4ff5794b399b3556e68f0c436a57d5f7e437e740bb16c0b521ceb23fd7"
+  name = "golang.org/x/net"
+  packages = [
+    "internal/socks",
+    "proxy",
+  ]
+  pruneopts = "UT"
+  revision = "65e2d4e15006aab9813ff8769e768bbf4bb667a0"
 
 [[projects]]
   branch = "master"
@@ -124,10 +393,21 @@
   pruneopts = "UT"
   revision = "41f3e6584952bb034a481797859f6ab34b6803bd"
 
+[[projects]]
+  branch = "master"
+  digest = "1:9fdc2b55e8e0fafe4b41884091e51e77344f7dc511c5acedcfd98200003bff90"
+  name = "golang.org/x/time"
+  packages = ["rate"]
+  pruneopts = "UT"
+  revision = "85acf8d2951cb2a3bde7632f9ff273ef0379bcbd"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/anacrolix/torrent",
+    "github.com/anacrolix/torrent/metainfo",
+    "github.com/anacrolix/torrent/storage",
     "github.com/cavaliercoder/grab",
     "github.com/mattn/go-sqlite3",
     "github.com/nenadstojanovikj/rd",
