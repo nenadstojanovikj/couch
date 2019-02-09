@@ -64,7 +64,7 @@ loop:
 			}
 			break loop
 		}
-		logrus.Debugf("waiting on RealDebrid, progress %d", torrent.Progress)
+		logrus.Debugf("waiting on RealDebrid, progress %d (%s)", torrent.Progress, magnet.Item.Term)
 		time.Sleep(ex.pollInterval)
 	}
 
@@ -126,7 +126,7 @@ func (ex *RealDebridExtractor) AddOrGetTorrentUrl(magnet string) (info rd.Torren
 	}
 	logrus.Warnf("could not add magnet, probably one is already active: %s", err)
 
-	torrents, err := ex.debrid.Torrents.GetTorrents(true)
+	torrents, err := ex.debrid.Torrents.GetTorrents()
 	if err != nil {
 		return info, fmt.Errorf("could not get list of active torrents: %s", err)
 	}
