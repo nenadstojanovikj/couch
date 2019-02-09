@@ -1,15 +1,11 @@
 package pipeline
 
 import (
-	"fmt"
 	"github.com/nenadstojanovikj/couch/pkg/config"
 	"github.com/nenadstojanovikj/couch/pkg/magnet"
 	"github.com/nenadstojanovikj/couch/pkg/media"
 	"github.com/nenadstojanovikj/couch/pkg/storage"
 	"github.com/sirupsen/logrus"
-	"path"
-	"regexp"
-	"strconv"
 	"sync"
 )
 
@@ -32,8 +28,6 @@ func NewExtractStep(repo *storage.MediaRepository, extractor magnet.Extractor, c
 		currentExtracts: make(map[string]interface{}),
 	}
 }
-
-var tvShowRegex = regexp.MustCompile("(.*) S([0-9]{2})")
 
 func (step *extractStep) Extract(magnetChan chan storage.Magnet) chan storage.Download {
 	dlMap := make(chan storage.Download, 10)
@@ -64,24 +58,19 @@ func (step *extractStep) Extract(magnetChan chan storage.Magnet) chan storage.Do
 				}
 
 				for _, url := range urls {
-					dlLocation := storage.Download{
-						Location: url,
-					}
-
-					// TODO Move to download package
-					// Function to generate path
+					var dest string
 					switch m.Item.Type {
 					case media.TypeMovie:
-						// Decide if file needs to be renamed
-						dlLocation.Destination = path.Join(step.config.MoviesPath, path.Base(url))
+						dest = m.Item.Path(step.config.MoviesPath, url)
 					case media.TypeEpisode, media.TypeSeason:
-						matches := tvShowRegex.FindAllStringSubmatch(string(m.Item.Term), -1)
-						name := matches[0][1]
-						season, _ := strconv.Atoi(matches[0][2])
-
-						dlLocation.Destination = path.Join(step.config.TVShowsPath, fmt.Sprintf("%s/Season %d/%s", name, season, path.Base(url)))
+						dest = m.Item.Path(step.config.TVShowsPath, url)
 					}
-					dlLocation.Item = m.Item
+
+					dlLocation := storage.Download{
+						Location:    url,
+						Destination: dest,
+						Item:        m.Item,
+					}
 
 					if err := step.repo.AddDownload(dlLocation); err != nil {
 						logrus.Errorf("could not add download for %q: %s", dlLocation.Item.Term, err)
