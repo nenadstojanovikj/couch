@@ -3,3 +3,6 @@ vendor
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
+couch-armv7
+couch
+\.torrent\.bolt\.db
