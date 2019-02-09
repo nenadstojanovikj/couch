@@ -18,8 +18,8 @@ type TraktProvider struct {
 func (p *TraktProvider) Poll() (metadata []media.SearchItem, err error) {
 	var removeMeta trakt.FullMetadata
 
-	yesterday := time.Now().Add(-time.Hour * 24).Format("2006-01-02")
-	episodes, err := p.trakt.Calendar(yesterday, 1)
+	today := time.Now().Format("2006-01-02")
+	episodes, err := p.trakt.Calendar(today, 1)
 	if err != nil {
 		return nil, err
 	}
