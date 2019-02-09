@@ -224,3 +224,18 @@ FROM realdebrid WHERE title = ?`, term)
 
 	return tx.Commit()
 }
+
+func (r *MediaRepository) GetAvailableMagnet(title string) (m string, err error) {
+	row := r.db.QueryRow(`SELECT t.url FROM torrents t WHERE t.title = ? ORDER BY t.rating ASC LIMIT 1;`, title)
+	err = row.Scan(&m)
+	return m, err
+}
+
+func (r *MediaRepository) ItemByLocation(path string) (m media.SearchItem, err error) {
+	row := r.db.QueryRow(`SELECT s.title, s.type, s.imdb 
+FROM search_items s
+JOIN realdebrid r on s.title = r.title
+WHERE r.url = ?`, path)
+	err = row.Scan(&m.Term, &m.Type, &m.IMDb)
+	return m, err
+}
