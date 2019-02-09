@@ -155,7 +155,7 @@ AND l.status in ('Error', 'Downloading');
 func (r *MediaRepository) NonExtractedTorrents() (torrents []Magnet, err error) {
 	query := `SELECT m.title, m.type, t.url, t.size, t.quality, t.encoding, t.rating FROM search_items m
 JOIN torrents t on t.title = m.title
-WHERE m.status in ('Extracting', 'Scraped')
+WHERE m.status in ('Extracting', 'Scraped', 'Pending')
 AND m.title NOT IN (SELECT l.title FROM realdebrid l)
 GROUP BY t.title
 ORDER BY t.rating ASC;
