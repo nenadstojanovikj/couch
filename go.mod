@@ -2,7 +2,7 @@ module github.com/nenadstojanovikj/couch
 
 require (
 	github.com/RoaringBitmap/roaring v0.4.16
-	github.com/anacrolix/dht v1.0.0
+	github.com/anacrolix/dht v1.0.1-0.20190118110415-9a2d88b4a294
 	github.com/anacrolix/go-libutp v0.0.0-20180808010927-aebbeb60ea05
 	github.com/anacrolix/log v0.2.0
 	github.com/anacrolix/missinggo v0.1.0
@@ -27,7 +27,7 @@ require (
 	github.com/mschoch/smat v0.0.0-20160514031455-90eadee771ae
 	github.com/nenadstojanovikj/rd v0.0.0-20190204225720-9ca1ca7f0500
 	github.com/nenadstojanovikj/trakt v0.0.0-20190204225050-846f0c75551e
-	github.com/op/go-logging v0.0.0-20160211212156-b2cb9fa56473
+	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
 	github.com/petar/GoLLRB v0.0.0-20130427215148-53be0d36a84c
 	github.com/philhofer/fwd v1.0.0
 	github.com/pkg/errors v0.8.1
@@ -35,7 +35,7 @@ require (
 	github.com/qopher/go-torrentapi v0.0.0-20180324211201-2fa27345de9c
 	github.com/ryszard/goskiplist v0.0.0-20150312221310-2dfbae5fcf46
 	github.com/sirupsen/logrus v1.3.0
-	github.com/spaolacci/murmur3 v0.0.0-20170819071325-9f5d223c6079
+	github.com/spaolacci/murmur3 v0.0.0-20180118202830-f09979ecbc72
 	github.com/spf13/cobra v0.0.0-20190109003409-7547e83b2d85
 	github.com/spf13/pflag v1.0.3
 	github.com/stretchr/testify v1.3.0
