@@ -29,8 +29,7 @@ encoding TEXT CHECK (encoding in ('x264', 'x265', 'VC-1', 'XviD')),
 size INTEGER NOT NULL,
 rating INTEGER DEFAULT 0)`,
 
-		// Handled by downloaders
-		`CREATE TABLE realdebrid (
+		`CREATE TABLE downloads (
 title TEXT REFERENCES search_items(title) ON DELETE CASCADE,
 url TEXT NOT NULL UNIQUE,
 destination TEXT NOT NULL,

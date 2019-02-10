@@ -93,7 +93,7 @@ func (r *MediaRepository) AddDownload(download Download) error {
 	}
 
 	_, err = tx.Exec(
-		"INSERT OR IGNORE INTO realdebrid (title, url, destination, status) VALUES (?, ?, ?, ?)",
+		"INSERT OR IGNORE INTO downloads (title, url, destination, status) VALUES (?, ?, ?, ?)",
 		download.Item.Term,
 		download.Location,
 		download.Destination,
@@ -131,7 +131,7 @@ func (r *MediaRepository) Status(title string, status Status) error {
 
 func (r *MediaRepository) InProgressDownloads() (downloads []Download, err error) {
 	query := `SELECT m.title, m.type, l.url, l.destination FROM search_items m
-JOIN realdebrid l on l.title = m.title
+JOIN downloads l on l.title = m.title
 WHERE m.status in ('Extracting', 'Downloading', 'Error')
 AND l.status in ('Error', 'Downloading');
 `
@@ -156,7 +156,7 @@ func (r *MediaRepository) NonExtractedTorrents() (torrents []Magnet, err error) 
 	query := `SELECT m.title, m.type, t.url, t.size, t.quality, t.encoding, t.rating FROM search_items m
 JOIN torrents t on t.title = m.title
 WHERE m.status in ('Extracting', 'Scraped', 'Pending')
-AND m.title NOT IN (SELECT l.title FROM realdebrid l)
+AND m.title NOT IN (SELECT l.title FROM downloads l)
 GROUP BY t.title
 ORDER BY t.rating ASC;
 `
@@ -188,7 +188,7 @@ func (r *MediaRepository) UpdateDownload(term, url string, isDone bool, err erro
 	tx, err := r.db.Begin()
 
 	_, err = tx.Exec(
-		"UPDATE realdebrid SET status = ? WHERE url = ?",
+		"UPDATE downloads SET status = ? WHERE url = ?",
 		status,
 		url,
 	)
@@ -204,7 +204,7 @@ func (r *MediaRepository) UpdateDownload(term, url string, isDone bool, err erro
        count(CASE WHEN status = 'Error' THEN status END) as error,
        count(CASE WHEN status = 'Downloading' THEN status END) as downloading,
        count(CASE WHEN status = 'Downloaded' THEN status END) as downloaded
-FROM realdebrid WHERE title = ?`, term)
+FROM downloads WHERE title = ?`, term)
 
 	if err := row.Scan(&errors, &downloading, &downloaded); err != nil {
 		tx.Rollback()
@@ -234,7 +234,7 @@ func (r *MediaRepository) GetAvailableMagnet(title string) (m string, err error)
 func (r *MediaRepository) ItemByLocation(path string) (m media.SearchItem, err error) {
 	row := r.db.QueryRow(`SELECT s.title, s.type, s.imdb 
 FROM search_items s
-JOIN realdebrid r on s.title = r.title
+JOIN downloads r on s.title = r.title
 WHERE r.url = ?`, path)
 	err = row.Scan(&m.Term, &m.Type, &m.IMDb)
 	return m, err
