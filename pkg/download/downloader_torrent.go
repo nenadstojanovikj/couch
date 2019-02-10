@@ -3,8 +3,7 @@ package download
 import (
 	"fmt"
 	"github.com/anacrolix/torrent"
-	"github.com/anacrolix/torrent/metainfo"
-	storage2 "github.com/anacrolix/torrent/storage"
+	torStorage "github.com/anacrolix/torrent/storage"
 	"github.com/nenadstojanovikj/couch/pkg/config"
 	"github.com/nenadstojanovikj/couch/pkg/media"
 	"github.com/nenadstojanovikj/couch/pkg/storage"
@@ -40,9 +39,18 @@ func (s *torrentStatus) Info() *Info {
 		done = true
 	}
 
-	usefulBytes := s.file.Torrent().Stats().BytesReadUsefulData
+	pieces := s.file.State()
 
-	if s.file.Length() == (&usefulBytes).Int64() {
+	var total, completed int64
+	for _, p := range pieces {
+		total += p.Bytes
+
+		if p.Complete {
+			completed += p.Bytes
+		}
+	}
+
+	if total == completed {
 		done = true
 	}
 
@@ -50,28 +58,28 @@ func (s *torrentStatus) Info() *Info {
 		Url:             s.file.Path(),
 		Error:           err,
 		IsDone:          done,
-		TotalBytes:      s.file.Length(),
-		DownloadedBytes: (&usefulBytes).Int64(),
+		TotalBytes:      total,
+		DownloadedBytes: completed,
 		Filepath:        s.filepath,
 		Item:            s.item,
 	}
 }
 
 func (d *torrentDownloader) Get(item media.SearchItem, url string, destination string) (Informer, error) {
-	// TODO New torrent client for each new torrent
 	magnet, err := d.repo.GetAvailableMagnet(item.Term)
 	if err != nil {
 		return nil, fmt.Errorf("could not get first available torrent: %s", err)
 	}
 
-	filePather := storage2.NewFileWithCustomPathMaker("/", func(baseDir string, info *metainfo.Info, infoHash metainfo.Hash) string {
-		switch item.Type {
-		case media.TypeEpisode, media.TypeSeason:
-			return path.Dir(item.Path(d.config.TVShowsPath, url))
-		default:
-			return path.Dir(item.Path(d.config.MoviesPath, url))
-		}
-	})
+	destFolder := path.Dir(destination)
+
+	completion, err := torStorage.NewSqlitePieceCompletion(destFolder)
+	if err != nil {
+		return nil, fmt.Errorf("could not initialize sqlite completion db: %s", err)
+	}
+
+	// TODO Delete sqlite after download
+	filePather := torStorage.NewFileWithCompletion(destFolder, completion)
 
 	torrentConf := torrent.NewDefaultClientConfig()
 	torrentConf.DefaultStorage = filePather
