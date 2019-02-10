@@ -39,7 +39,7 @@ func (step *scrapeStep) Scrape(searchItems <-chan media.SearchItem) chan storage
 
 			// TODO Store Seeders in magnet?
 			processors := []magnet.ProcessFunc{
-				magnet.FilterQuality(storage.QualityFHD, storage.QualityFHD),
+				magnet.FilterQuality(storage.QualitySD, storage.QualityFHD),
 				magnet.FilterEncoding(storage.Encodingx264, storage.Encodingx265),
 				magnet.SortSize(false),
 				magnet.SortEncoding(true),
