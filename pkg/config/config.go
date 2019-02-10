@@ -7,9 +7,6 @@ import (
 	"time"
 )
 
-type Configuration interface {
-}
-
 type AuthConfig struct {
 	ClientID     string    `json:"client_id"`
 	ClientSecret string    `json:"client_secret"`
@@ -22,6 +19,8 @@ type AuthConfig struct {
 
 type Config struct {
 	db *sql.DB
+
+	Downloader string `json:"downloader"`
 
 	Port int `json:"port"`
 
@@ -41,7 +40,9 @@ func NewConfiguration(db *sql.DB) Config {
 	}
 
 	return Config{
-		db:                      db,
+		db: db,
+
+		Downloader:              "http",
 		Port:                    8080,
 		MoviesPath:              u.HomeDir + "/Movies",
 		TVShowsPath:             u.HomeDir + "/TVShows",

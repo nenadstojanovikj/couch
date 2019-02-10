@@ -5,6 +5,11 @@ import (
 	"github.com/nenadstojanovikj/couch/pkg/media"
 )
 
+const (
+	TypeTorrent = "torrent"
+	TypeHTTP    = "http"
+)
+
 type Info struct {
 	Item            media.SearchItem
 	Filepath        string

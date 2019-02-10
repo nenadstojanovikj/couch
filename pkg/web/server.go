@@ -52,10 +52,12 @@ func showIndex(config *config.Config) http.HandlerFunc {
 			Port            int
 			MovieDirectory  string
 			TVShowDirectory string
+			DownloaderType  string
 		}{
 			Port:            config.Port,
 			TVShowDirectory: config.TVShowsPath,
 			MovieDirectory:  config.MoviesPath,
+			DownloaderType:  config.Downloader,
 		})
 
 		if err != nil {

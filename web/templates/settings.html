@@ -18,6 +18,10 @@
                 <label for="tvshowInput">TV Show directory</label>
                 <input type="text" class="form-control" id="tvshowInput" placeholder="/home/user/TVShows" value="{{ .TVShowDirectory }}">
             </div>
+            <div class="form-group">
+                <label for="downloaderInput">Downloader Type (torrent/http)</label>
+                <input type="text" class="form-control" id="downloaderInput" placeholder="http" value="{{ .DownloaderType }}">
+            </div>
 
             <button id="update" type="button" class="btn btn-primary">Save</button>
         </form>
