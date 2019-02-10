@@ -9,7 +9,7 @@ my media locally during the day.
 
 ## Prerequisites
 
-- `go`, version 1.10+
+- `go`, version 1.11+
 - most probably Linux system, as some libraries require `libc`
 - (opt.) for cross-compilation, you will need `arm-linux-gnueabihf-gcc` and `arm-linux-gnueabihf-g++`
 

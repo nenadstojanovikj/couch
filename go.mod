@@ -1,0 +1,49 @@
+module github.com/nenadstojanovikj/couch
+
+require (
+	github.com/RoaringBitmap/roaring v0.4.16
+	github.com/anacrolix/dht v1.0.0
+	github.com/anacrolix/go-libutp v0.0.0-20180808010927-aebbeb60ea05
+	github.com/anacrolix/log v0.2.0
+	github.com/anacrolix/missinggo v0.1.0
+	github.com/anacrolix/mmsg v0.0.0-20180808012353-5adb2c1127c0
+	github.com/anacrolix/sync v0.0.0-20180808010631-44578de4e778
+	github.com/anacrolix/torrent v0.0.0-20190130065402-b102ce901ad9
+	github.com/anacrolix/utp v0.0.0-20180219060659-9e0e1d1d0572
+	github.com/boltdb/bolt v1.3.1
+	github.com/bradfitz/iter v0.0.0-20140124041915-454541ec3da2
+	github.com/cavaliercoder/grab v2.0.0+incompatible
+	github.com/davecgh/go-spew v1.1.1
+	github.com/dustin/go-humanize v1.0.0
+	github.com/edsrzf/mmap-go v1.0.0
+	github.com/elgatito/upnp v0.0.0-20180711183757-2f244d205f9a
+	github.com/glycerine/go-unsnap-stream v0.0.0-20181221182339-f9677308dec2
+	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db
+	github.com/google/btree v0.0.0-20180813153112-4030bb1f1f0c
+	github.com/huandu/xstrings v1.2.0
+	github.com/inconshreveable/mousetrap v1.0.0
+	github.com/konsorten/go-windows-terminal-sequences v1.0.1
+	github.com/mattn/go-sqlite3 v1.10.0
+	github.com/mschoch/smat v0.0.0-20160514031455-90eadee771ae
+	github.com/nenadstojanovikj/rd v0.0.0-20190204225720-9ca1ca7f0500
+	github.com/nenadstojanovikj/trakt v0.0.0-20190204225050-846f0c75551e
+	github.com/op/go-logging v0.0.0-20160211212156-b2cb9fa56473
+	github.com/petar/GoLLRB v0.0.0-20130427215148-53be0d36a84c
+	github.com/philhofer/fwd v1.0.0
+	github.com/pkg/errors v0.8.1
+	github.com/pmezard/go-difflib v1.0.0
+	github.com/qopher/go-torrentapi v0.0.0-20180324211201-2fa27345de9c
+	github.com/ryszard/goskiplist v0.0.0-20150312221310-2dfbae5fcf46
+	github.com/sirupsen/logrus v1.3.0
+	github.com/spaolacci/murmur3 v0.0.0-20170819071325-9f5d223c6079
+	github.com/spf13/cobra v0.0.0-20190109003409-7547e83b2d85
+	github.com/spf13/pflag v1.0.3
+	github.com/stretchr/testify v1.3.0
+	github.com/tinylib/msgp v1.1.0
+	github.com/willf/bitset v1.1.9
+	github.com/willf/bloom v2.0.3+incompatible
+	golang.org/x/crypto v0.0.0-20190131182504-b8fe1690c613
+	golang.org/x/net v0.0.0-20190206173232-65e2d4e15006
+	golang.org/x/sys v0.0.0-20190204203706-41f3e6584952
+	golang.org/x/time v0.0.0-20181108054448-85acf8d2951c
+)
