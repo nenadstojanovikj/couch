@@ -26,11 +26,17 @@ func NewRarbgScraper() (*RarbgScraper, error) {
 func (s *RarbgScraper) Scrape(item media.SearchItem) ([]storage.Magnet, error) {
 	query := s.client
 
-	// IMDb gets priority since it's always more specific
-	if item.IMDb != "" {
+	// RARBG has some weird algorithm for searching movies by titles, and
+	// usually only an IMDb identifier yields better results
+	if item.IMDb != "" && item.Type == media.TypeMovie {
 		query = s.client.SearchIMDb(item.IMDb)
+	} else {
+		query = s.client.SearchString(fmt.Sprintf("%q", item.Term))
+
+		if item.IMDb != "" {
+			query = s.client.SearchIMDb(item.IMDb)
+		}
 	}
-	query = s.client.SearchString(fmt.Sprintf("%q", item.Term))
 
 	query.Format("json_extended")
 	switch item.Type {
