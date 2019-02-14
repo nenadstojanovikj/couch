@@ -24,6 +24,7 @@ type downloadStep struct {
 	informers map[download.Informer]download.Informer
 }
 
+// TODO handle cases where there is a retry loop of errored downloads
 func NewDownloadStep(repo *storage.MediaRepository, getter download.Getter, maxDownloads int) *downloadStep {
 	maxDL := make(chan interface{}, maxDownloads)
 
