@@ -17,6 +17,7 @@ import (
 	"github.com/nenadstojanovikj/trakt"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/streadway/handy/retry"
 	"net/http"
 	"os"
 	"os/signal"
@@ -128,11 +129,18 @@ func scrapers(c *config.Config, r *storage.MediaRepository) []magnet.Scraper {
 }
 
 func pollers(c *config.Config, r *storage.MediaRepository) []mediaprovider.Poller {
+	client := &http.Client{Timeout: time.Second * 10}
+	client.Transport = retry.Transport{
+		Next:  http.DefaultTransport,
+		Delay: retry.Exponential(time.Second),
+		Retry: retry.All(retry.Timeout(time.Second*30), retry.Errors(), retry.Over(399), retry.Method("GET", "POST")),
+	}
+
 	traktClient := trakt.NewClient(
 		c.Trakt.ClientID,
 		c.Trakt.ClientSecret,
 		createTraktToken(&c.Trakt),
-		&http.Client{Timeout: time.Second * 10},
+		client,
 		nil,
 	)
 
