@@ -22,6 +22,11 @@ func main() {
 	}
 
 	conf := config.NewConfiguration(db)
+	if err := conf.Save(); err != nil {
+		logrus.Errorf("error while storing configuration: %s", err)
+		os.Exit(1)
+	}
+
 	if err := conf.Load(); err != nil {
 		logrus.Errorf("error while loading configuration: %s", err)
 		os.Exit(1)
