@@ -2,13 +2,11 @@ package cmd
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"github.com/nenadstojanovikj/couch/pipeline"
 	"github.com/nenadstojanovikj/couch/pkg/config"
 	"github.com/nenadstojanovikj/couch/pkg/download"
 	"github.com/nenadstojanovikj/couch/pkg/magnet"
-	"github.com/nenadstojanovikj/couch/pkg/media"
 	"github.com/nenadstojanovikj/couch/pkg/mediaprovider"
 	"github.com/nenadstojanovikj/couch/pkg/refresh"
 	"github.com/nenadstojanovikj/couch/pkg/storage"
@@ -48,41 +46,14 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 			}
 		}()
 
-		scrapeItems := make(chan media.SearchItem)
-
 		searchItems := pipeline.NewPollStep(repo, pollers(config, repo)).
 			Poll()
 		magnetChan := pipeline.NewScrapeStep(repo, scrapers(config, repo)).
-			Scrape(scrapeItems)
+			Scrape(searchItems)
 		downloadLocations := pipeline.NewExtractStep(repo, extractor(config, repo), config).
 			Extract(magnetChan)
 		downloadedItems := pipeline.NewDownloadStep(repo, downloader(config, repo), config.ConcurrentDownloadFiles).
 			Download(downloadLocations)
-
-		go func() {
-			for item := range searchItems {
-				m, err := repo.Fetch(item.Term)
-
-				if m.Status == storage.StatusPending {
-					scrapeItems <- item
-					continue
-				}
-
-				if err == sql.ErrNoRows {
-					err := repo.StoreItem(item)
-					if err != nil {
-						logrus.Errorf("could not store %q: %s", item.Term, err)
-						continue
-					}
-
-					scrapeItems <- item
-					logrus.Infof("pushing %q for scraping", item.Term)
-					continue
-				}
-
-				logrus.Infof("skipping %q for scraping, already in database", item.Term)
-			}
-		}()
 
 		// Periodic pollers
 		go func() {

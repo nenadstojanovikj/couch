@@ -1,6 +1,7 @@
 package pipeline
 
 import (
+	"database/sql"
 	"github.com/nenadstojanovikj/couch/pkg/media"
 	"github.com/nenadstojanovikj/couch/pkg/mediaprovider"
 	"github.com/nenadstojanovikj/couch/pkg/storage"
@@ -21,7 +22,7 @@ func NewPollStep(repo *storage.MediaRepository, pollers []mediaprovider.Poller) 
 }
 
 func (step *pollStep) Poll() chan media.SearchItem {
-	searchItems := make(chan media.SearchItem, 10)
+	searches := make(chan media.SearchItem, 10)
 
 	for _, provider := range step.pollers {
 		// TODO Add pauseChan which would stop the polling for a specified provider
@@ -34,7 +35,7 @@ func (step *pollStep) Poll() chan media.SearchItem {
 
 				for _, item := range items {
 					logrus.Debugf("fetched %q for searching", item.Term)
-					searchItems <- item
+					searches <- item
 				}
 
 				time.Sleep(provider.Interval())
@@ -42,5 +43,31 @@ func (step *pollStep) Poll() chan media.SearchItem {
 		}(provider)
 	}
 
-	return searchItems
+	newSearches := make(chan media.SearchItem, 10)
+	go func() {
+		for item := range searches {
+			m, err := step.repo.Fetch(item.Term)
+
+			if m.Status == storage.StatusPending {
+				newSearches <- item
+				continue
+			}
+
+			if err == sql.ErrNoRows {
+				err := step.repo.StoreItem(item)
+				if err != nil {
+					logrus.Errorf("could not store %q: %s", item.Term, err)
+					continue
+				}
+
+				newSearches <- item
+				logrus.Infof("pushing %q for scraping", item.Term)
+				continue
+			}
+
+			logrus.Infof("skipping %q for scraping, already in database", item.Term)
+		}
+	}()
+
+	return newSearches
 }
