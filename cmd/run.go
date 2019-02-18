@@ -129,7 +129,7 @@ func scrapers(c *config.Config, r *storage.MediaRepository) []magnet.Scraper {
 }
 
 func pollers(c *config.Config, r *storage.MediaRepository) []mediaprovider.Poller {
-	client := &http.Client{Timeout: time.Second * 10}
+	client := &http.Client{}
 	client.Transport = retry.Transport{
 		Next:  http.DefaultTransport,
 		Delay: retry.Exponential(time.Second),
@@ -152,8 +152,15 @@ func pollers(c *config.Config, r *storage.MediaRepository) []mediaprovider.Polle
 func extractor(c *config.Config, r *storage.MediaRepository) magnet.Extractor {
 	switch c.Downloader {
 	case download.TypeHTTP:
+		client := &http.Client{}
+		client.Transport = retry.Transport{
+			Next:  http.DefaultTransport,
+			Delay: retry.Exponential(time.Second),
+			Retry: retry.All(retry.Timeout(time.Second*30), retry.Errors(), retry.Temporary(), retry.Over(399), retry.Method("GET", "POST")),
+		}
+
 		return magnet.NewRealDebridExtractor(
-			rd.NewRealDebrid(createToken(&c.RealDebrid), http.DefaultClient, rd.AutoRefresh),
+			rd.NewRealDebrid(createToken(&c.RealDebrid), client, rd.AutoRefresh),
 			time.Second*10,
 			false,
 		)
