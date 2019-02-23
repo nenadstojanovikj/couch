@@ -41,7 +41,7 @@ After modifying the config, you must restart the application for the new setting
 
 Related files:
 - `cmd/run.go`
-- `pkg/mediaprovider`
+- `pkg/media`
 - `pkg/download`
 - `pkg/magnet`
 

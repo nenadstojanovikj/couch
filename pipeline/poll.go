@@ -3,18 +3,17 @@ package pipeline
 import (
 	"database/sql"
 	"github.com/nenadstojanovikj/couch/pkg/media"
-	"github.com/nenadstojanovikj/couch/pkg/mediaprovider"
 	"github.com/nenadstojanovikj/couch/pkg/storage"
 	"github.com/sirupsen/logrus"
 	"time"
 )
 
 type pollStep struct {
-	pollers []mediaprovider.Poller
+	pollers []media.Provider
 	repo    *storage.MediaRepository
 }
 
-func NewPollStep(repo *storage.MediaRepository, pollers []mediaprovider.Poller) *pollStep {
+func NewPollStep(repo *storage.MediaRepository, pollers []media.Provider) *pollStep {
 	return &pollStep{
 		repo:    repo,
 		pollers: pollers,
@@ -26,7 +25,7 @@ func (step *pollStep) Poll() chan media.SearchItem {
 
 	for _, provider := range step.pollers {
 		// TODO Add pauseChan which would stop the polling for a specified provider
-		go func(provider mediaprovider.Poller) {
+		go func(provider media.Provider) {
 			for {
 				items, err := provider.Poll()
 				if err != nil {

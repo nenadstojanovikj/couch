@@ -1,7 +1,6 @@
-package mediaprovider
+package media
 
 import (
-	"github.com/nenadstojanovikj/couch/pkg/media"
 	"github.com/nenadstojanovikj/trakt"
 	"github.com/sirupsen/logrus"
 	"time"
@@ -15,7 +14,7 @@ type TraktProvider struct {
 	trakt *trakt.Client
 }
 
-func (p *TraktProvider) Poll() (metadata []media.SearchItem, err error) {
+func (p *TraktProvider) Poll() (metadata []SearchItem, err error) {
 	var removeMeta trakt.FullMetadata
 
 	today := time.Now().Format("2006-01-02")
@@ -24,7 +23,7 @@ func (p *TraktProvider) Poll() (metadata []media.SearchItem, err error) {
 		return nil, err
 	}
 	for _, e := range episodes {
-		metadata = append(metadata, media.NewEpisode(e.Show.Title, e.Episode.Season, e.Episode.Number, e.Show.IDs.IMDb))
+		metadata = append(metadata, NewEpisode(e.Show.Title, e.Episode.Season, e.Episode.Number, e.Show.IDs.IMDb))
 		removeMeta.Episodes = append(removeMeta.Episodes, e.Episode)
 	}
 
@@ -33,7 +32,7 @@ func (p *TraktProvider) Poll() (metadata []media.SearchItem, err error) {
 		return nil, err
 	}
 	for _, e := range watchEpisodes {
-		metadata = append(metadata, media.NewEpisode(e.Show.Title, e.Episode.Season, e.Episode.Number, e.Show.IDs.IMDb))
+		metadata = append(metadata, NewEpisode(e.Show.Title, e.Episode.Season, e.Episode.Number, e.Show.IDs.IMDb))
 		removeMeta.Episodes = append(removeMeta.Episodes, e.Episode)
 	}
 
@@ -42,7 +41,7 @@ func (p *TraktProvider) Poll() (metadata []media.SearchItem, err error) {
 		return nil, err
 	}
 	for _, m := range movies {
-		metadata = append(metadata, media.NewMovie(m.Movie.Title, m.Movie.Year, m.Movie.IDs.IMDb))
+		metadata = append(metadata, NewMovie(m.Movie.Title, m.Movie.Year, m.Movie.IDs.IMDb))
 		removeMeta.Movies = append(removeMeta.Movies, m.Movie)
 	}
 
@@ -51,7 +50,7 @@ func (p *TraktProvider) Poll() (metadata []media.SearchItem, err error) {
 		return nil, err
 	}
 	for _, s := range seasons {
-		metadata = append(metadata, media.NewSeason(s.Show.Title, s.Season.Number, s.Show.IDs.IMDb))
+		metadata = append(metadata, NewSeason(s.Show.Title, s.Season.Number, s.Show.IDs.IMDb))
 		removeMeta.Seasons = append(removeMeta.Seasons, s.Season)
 	}
 

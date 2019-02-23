@@ -7,7 +7,7 @@ import (
 	"github.com/nenadstojanovikj/couch/pkg/config"
 	"github.com/nenadstojanovikj/couch/pkg/download"
 	"github.com/nenadstojanovikj/couch/pkg/magnet"
-	"github.com/nenadstojanovikj/couch/pkg/mediaprovider"
+	"github.com/nenadstojanovikj/couch/pkg/media"
 	"github.com/nenadstojanovikj/couch/pkg/refresh"
 	"github.com/nenadstojanovikj/couch/pkg/storage"
 	"github.com/nenadstojanovikj/couch/pkg/web"
@@ -99,7 +99,7 @@ func scrapers(c *config.Config, r *storage.MediaRepository) []magnet.Scraper {
 	}
 }
 
-func pollers(c *config.Config, r *storage.MediaRepository) []mediaprovider.Poller {
+func pollers(c *config.Config, r *storage.MediaRepository) []media.Provider {
 	client := &http.Client{}
 	client.Transport = retry.Transport{
 		Next:  http.DefaultTransport,
@@ -115,8 +115,8 @@ func pollers(c *config.Config, r *storage.MediaRepository) []mediaprovider.Polle
 		nil,
 	)
 
-	return []mediaprovider.Poller{
-		mediaprovider.NewTraktProvider(traktClient),
+	return []media.Provider{
+		media.NewTraktProvider(traktClient),
 	}
 }
 
