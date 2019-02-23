@@ -20,17 +20,13 @@ type downloadStep struct {
 	mu               sync.RWMutex
 	currentDownloads map[string]interface{}
 
-	maxDL     chan interface{}
+	maxDL     chan struct{}
 	informers map[download.Informer]download.Informer
 }
 
 // TODO handle cases where there is a retry loop of errored downloads
 func NewDownloadStep(repo *storage.MediaRepository, getter download.Getter, maxDownloads int) *downloadStep {
-	maxDL := make(chan interface{}, maxDownloads)
-
-	for i := 0; i < maxDownloads; i++ {
-		maxDL <- struct{}{}
-	}
+	maxDL := make(chan struct{}, maxDownloads)
 
 	return &downloadStep{
 		repo:             repo,
@@ -62,8 +58,8 @@ func (step *downloadStep) Download(downloads <-chan storage.Download) chan media
 			step.currentDownloads[dl.Location] = nil
 			step.mu.Unlock()
 
-			// Take a token or wait until one is available
-			<-step.maxDL
+			// Acquire a token or wait until one is available
+			step.maxDL <- struct{}{}
 
 			logrus.Debugf("started download for %q", dl.Location)
 			informer, err := step.getter.Get(dl.Item, dl.Location, dl.Destination)
@@ -100,7 +96,8 @@ func (step *downloadStep) Download(downloads <-chan storage.Download) chan media
 					logrus.Errorf("error while downloading %q: %s", info.Item.Term, info.Error)
 				}
 
-				step.maxDL <- struct{}{}
+				// Release once done
+				<-step.maxDL
 				if err := step.repo.UpdateDownload(info.Item.Term, info.Url, info.IsDone, info.Error); err != nil {
 					logrus.Errorf("could not update status after download: %s", err)
 					continue
