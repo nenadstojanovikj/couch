@@ -104,7 +104,12 @@ func pollers(c *config.Config, r *storage.MediaRepository) []media.Provider {
 	client.Transport = retry.Transport{
 		Next:  http.DefaultTransport,
 		Delay: retry.Exponential(time.Second),
-		Retry: retry.All(retry.Timeout(time.Second*30), retry.Errors(), retry.Over(399), retry.Method("GET", "POST")),
+		Retry: retry.All(
+			retry.Timeout(time.Second*10),
+			retry.Errors(),
+			retry.Temporary(),
+			retry.Over(399),
+		),
 	}
 
 	traktClient := trakt.NewClient(
@@ -127,7 +132,12 @@ func extractor(c *config.Config, r *storage.MediaRepository) magnet.Extractor {
 		client.Transport = retry.Transport{
 			Next:  http.DefaultTransport,
 			Delay: retry.Exponential(time.Second),
-			Retry: retry.All(retry.Timeout(time.Second*30), retry.Errors(), retry.Temporary(), retry.Over(399), retry.Method("GET", "POST")),
+			Retry: retry.All(
+				retry.Timeout(time.Second*10),
+				retry.Errors(),
+				retry.Temporary(),
+				retry.Over(399),
+			),
 		}
 
 		return magnet.NewRealDebridExtractor(
