@@ -1,8 +1,10 @@
 package config
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"os/user"
 	"time"
 )
@@ -55,8 +57,13 @@ func (c *Config) Load() error {
 
 	var j []byte
 	err := row.Scan(&j)
+
 	if err != nil {
 		return err
+	}
+
+	if bytes.Equal(j, []byte("{}")) {
+		return fmt.Errorf("empty config")
 	}
 
 	return json.Unmarshal(j, &c)
@@ -64,11 +71,11 @@ func (c *Config) Load() error {
 
 func (c *Config) Save() error {
 	// Indenting so it's human readable for easier inspection
-	bytes, err := json.MarshalIndent(c, "", "    ")
+	b, err := json.MarshalIndent(c, "", "    ")
 	if err != nil {
 		return err
 	}
 
-	_, err = c.db.Exec("UPDATE config SET config = ?", bytes)
+	_, err = c.db.Exec("UPDATE config SET config = ?", b)
 	return err
 }
