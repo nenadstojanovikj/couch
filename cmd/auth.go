@@ -3,16 +3,18 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"os"
+	"os/signal"
+	"strings"
+	"syscall"
+	"time"
+
 	"github.com/nenadstojanovikj/couch/pkg/config"
 	"github.com/nenadstojanovikj/rd"
 	"github.com/nenadstojanovikj/trakt"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 )
 
 func NewAuthCommand(config *config.Config) *cobra.Command {
@@ -34,14 +36,20 @@ func NewAuthCommand(config *config.Config) *cobra.Command {
 		Short: "Auth procedure for trakt.tv service",
 	})
 
+	cmd.AddCommand(&cobra.Command{
+		Use:   "telegram",
+		Run:   telegram(config),
+		Short: "Auth procedure for Telegram Bot notifications",
+	})
+
 	return cmd
 }
 
 func realdebrid(conf *config.Config) func(command *cobra.Command, args []string) {
-	rdClientId := "X245A4XAIBGVM"
+	rdClientID := "X245A4XAIBGVM"
 	return func(cmd *cobra.Command, args []string) {
 		auth := rd.NewAuthClient(http.DefaultClient)
-		creds, err := auth.StartAuthentication(rdClientId)
+		creds, err := auth.StartAuthentication(rdClientID)
 		if err != nil {
 			panic(err)
 		}
@@ -52,7 +60,7 @@ func realdebrid(conf *config.Config) func(command *cobra.Command, args []string)
 
 		for i := 1; i <= tries; i++ {
 			time.Sleep(time.Duration(creds.Interval) * time.Second)
-			secrets, err := auth.ObtainSecret(creds.DeviceCode, rdClientId)
+			secrets, err := auth.ObtainSecret(creds.DeviceCode, rdClientID)
 			if err != nil {
 				fmt.Printf("Still not verified, retrying (%d/%d) - Ctrl+C to cancel\n", i, tries)
 				continue
@@ -137,5 +145,22 @@ func trakttv(conf *config.Config) func(command *cobra.Command, args []string) {
 			os.Exit(1)
 		}
 		logrus.Info("successfully obtained token")
+	}
+}
+
+func telegram(conf *config.Config) func(cmd *cobra.Command, args []string) {
+	return func(cmd *cobra.Command, args []string) {
+		fmt.Println("1. Open Telegram and message @BotFather with /newbot. Give it a name and username.")
+		fmt.Println("2. Give it a name and username.")
+		fmt.Print("3. Enter the token here: ")
+
+		var token string
+		_, _ = fmt.Scanln(&token)
+		conf.TelegramBotToken = strings.TrimSpace(token)
+		if err := conf.Save(); err != nil {
+			logrus.Error(err)
+			os.Exit(1)
+		}
+		fmt.Println("4. Open a conversation with the bot in Telegram and type /subscribe. You can find the bot by looking up the username.")
 	}
 }
