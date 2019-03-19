@@ -63,5 +63,5 @@ func (p *TraktProvider) Poll() (metadata []SearchItem, err error) {
 }
 
 func (p *TraktProvider) Interval() time.Duration {
-	return time.Hour * 1
+	return time.Minute * 15
 }
