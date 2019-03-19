@@ -20,5 +20,6 @@
         "expires_in": 0,
         "obtained_at": "0001-01-01T00:00:00Z",
         "token_type": ""
-    }
+    },
+    "telegram_bot_token": "bot:token_here"
 }

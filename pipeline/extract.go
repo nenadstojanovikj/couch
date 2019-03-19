@@ -1,12 +1,13 @@
 package pipeline
 
 import (
+	"sync"
+
 	"github.com/nenadstojanovikj/couch/pkg/config"
 	"github.com/nenadstojanovikj/couch/pkg/magnet"
 	"github.com/nenadstojanovikj/couch/pkg/media"
 	"github.com/nenadstojanovikj/couch/pkg/storage"
 	"github.com/sirupsen/logrus"
-	"sync"
 )
 
 type (
@@ -52,7 +53,7 @@ func (step *extractStep) Extract(magnetChan chan storage.Magnet) chan storage.Do
 				if err != nil {
 					logrus.Errorf("could not extract link %s: %s", m.Location, err)
 					step.mu.Lock()
-					delete(step.currentExtracts, mag.Item.Term)
+					delete(step.currentExtracts, m.Item.Term)
 					step.mu.Unlock()
 					return
 				}

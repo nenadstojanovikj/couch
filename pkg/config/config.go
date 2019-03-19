@@ -33,6 +33,8 @@ type Config struct {
 
 	RealDebrid AuthConfig `json:"real_debrid"`
 	Trakt      AuthConfig `json:"trakt_tv"`
+
+	TelegramBotToken string `json:"telegram_bot_token"`
 }
 
 func NewConfiguration(db *sql.DB) Config {

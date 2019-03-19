@@ -2,18 +2,21 @@ package pipeline
 
 import (
 	"fmt"
-	"github.com/nenadstojanovikj/couch/pkg/download"
-	"github.com/nenadstojanovikj/couch/pkg/media"
-	"github.com/nenadstojanovikj/couch/pkg/storage"
-	"github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/nenadstojanovikj/couch/pkg/download"
+	"github.com/nenadstojanovikj/couch/pkg/media"
+	"github.com/nenadstojanovikj/couch/pkg/notifications"
+	"github.com/nenadstojanovikj/couch/pkg/storage"
+	"github.com/sirupsen/logrus"
 )
 
-type downloadStep struct {
+// DownloadStep is the final step in the pipeline
+type DownloadStep struct {
 	repo   *storage.MediaRepository
 	getter download.Getter
 
@@ -22,22 +25,25 @@ type downloadStep struct {
 
 	maxDL     chan struct{}
 	informers map[download.Informer]download.Informer
+	notifier  notifications.Notifier
 }
 
-// TODO handle cases where there is a retry loop of errored downloads
-func NewDownloadStep(repo *storage.MediaRepository, getter download.Getter, maxDownloads int) *downloadStep {
+// NewDownloadStep returns a pipeline step to download items
+// TODO handle cases where there is a retry loop of downloads in "error" state
+func NewDownloadStep(repo *storage.MediaRepository, getter download.Getter, maxDownloads int, notifier notifications.Notifier) *DownloadStep {
 	maxDL := make(chan struct{}, maxDownloads)
 
-	return &downloadStep{
+	return &DownloadStep{
 		repo:             repo,
 		getter:           getter,
 		maxDL:            maxDL,
 		currentDownloads: make(map[string]interface{}),
 		informers:        make(map[download.Informer]download.Informer),
+		notifier:         notifier,
 	}
 }
 
-func (step *downloadStep) Download(downloads <-chan storage.Download) chan media.SearchItem {
+func (step *DownloadStep) Download(downloads <-chan storage.Download) chan media.SearchItem {
 	downloadedChan := make(chan media.SearchItem)
 
 	go func() {
@@ -48,6 +54,7 @@ func (step *downloadStep) Download(downloads <-chan storage.Download) chan media
 				logrus.Errorf("error while adding a download link: %s", err)
 				continue
 			}
+			step.notifier.OnQueued(dl.Item)
 
 			step.mu.Lock()
 			if _, ok := step.currentDownloads[dl.Location]; ok {
@@ -104,6 +111,7 @@ func (step *downloadStep) Download(downloads <-chan storage.Download) chan media
 				}
 
 				logrus.Debugf("completed download for %q", info.Url)
+				step.notifier.OnFinish(info.Item)
 				delete(step.informers, index)
 			}
 			time.Sleep(time.Second * 5)

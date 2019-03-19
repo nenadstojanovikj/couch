@@ -2,12 +2,21 @@ package cmd
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/nenadstojanovikj/couch/pipeline"
 	"github.com/nenadstojanovikj/couch/pkg/config"
 	"github.com/nenadstojanovikj/couch/pkg/download"
 	"github.com/nenadstojanovikj/couch/pkg/magnet"
 	"github.com/nenadstojanovikj/couch/pkg/media"
+	"github.com/nenadstojanovikj/couch/pkg/notifications"
 	"github.com/nenadstojanovikj/couch/pkg/refresh"
 	"github.com/nenadstojanovikj/couch/pkg/storage"
 	"github.com/nenadstojanovikj/couch/pkg/web"
@@ -16,24 +25,20 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/streadway/handy/retry"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 )
 
-func NewAppCommand(config *config.Config, repo *storage.MediaRepository) *cobra.Command {
+func NewAppCommand(config *config.Config, db *sql.DB) *cobra.Command {
 	return &cobra.Command{
 		Use:   "run",
-		Run:   run(config, repo),
+		Run:   run(config, db),
 		Short: "Runs the application",
 		Long:  "Starts a web server and a daemon that will download files",
 	}
 }
 
-func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.Command, args []string) {
+func run(config *config.Config, db *sql.DB) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
+		repo := storage.NewMediaRepository(db)
 		stop := make(chan os.Signal)
 		signal.Notify(stop, os.Interrupt, os.Kill, syscall.SIGTERM)
 		logrus.SetOutput(os.Stdout)
@@ -46,20 +51,22 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 			}
 		}()
 
+		notifier := newNotifier(config, db)
+
 		searchItems := pipeline.NewPollStep(repo, pollers(config, repo)).
 			Poll()
 		magnetChan := pipeline.NewScrapeStep(repo, scrapers(config, repo)).
 			Scrape(searchItems)
 		downloadLocations := pipeline.NewExtractStep(repo, extractor(config, repo), config).
 			Extract(magnetChan)
-		downloadedItems := pipeline.NewDownloadStep(repo, downloader(config, repo), config.ConcurrentDownloadFiles).
+		downloadedItems := pipeline.NewDownloadStep(repo, downloader(config, repo), config.ConcurrentDownloadFiles, notifier).
 			Download(downloadLocations)
 
 		// Periodic pollers
 		go func() {
 			for {
 				if err := refresh.Extract(repo, magnetChan); err != nil {
-					logrus.Error("could not refresh database extract: %s", err)
+					logrus.Errorf("could not refresh database extract: %s", err)
 				}
 
 				time.Sleep(time.Minute * 10)
@@ -69,7 +76,7 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 		go func() {
 			for {
 				if err := refresh.Download(repo, downloadLocations); err != nil {
-					logrus.Error("could not refresh database for downloads: %s", err)
+					logrus.Errorf("could not refresh database for downloads: %s", err)
 				}
 
 				time.Sleep(time.Minute * 10)
@@ -86,6 +93,26 @@ func run(config *config.Config, repo *storage.MediaRepository) func(cmd *cobra.C
 		<-stop
 		_ = server.Shutdown(context.TODO())
 	}
+}
+
+func newNotifier(c *config.Config, db *sql.DB) notifications.Notifier {
+	if c.TelegramBotToken == "" {
+		return &notifications.NoopNotifier{}
+	}
+
+	bot, err := tgbotapi.NewBotAPI(c.TelegramBotToken)
+	if err != nil {
+		logrus.Fatalf("error while creating Telegram Bot: %s", err)
+	}
+
+	client := notifications.NewTelegramClient(bot, db)
+	go func() {
+		if err := client.StartListener(); err != nil {
+			logrus.Errorf("could not start Telegram listener: %s", err)
+		}
+	}()
+
+	return client
 }
 
 func scrapers(c *config.Config, r *storage.MediaRepository) []magnet.Scraper {

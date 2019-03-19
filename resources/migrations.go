@@ -34,5 +34,9 @@ title TEXT REFERENCES search_items(title) ON DELETE CASCADE,
 url TEXT NOT NULL UNIQUE,
 destination TEXT NOT NULL,
 status TEXT NOT NULL CHECK(status in ('Error', 'Downloading', 'Downloaded')))`,
+
+		// Telegram
+		`CREATE TABLE telegram (
+id TEXT NOT NULL PRIMARY KEY)`,
 	}
 }
