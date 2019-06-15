@@ -1,7 +1,7 @@
 package media
 
 import (
-	"github.com/nenadstojanovikj/trakt"
+	"github.com/nenad/trakt"
 	"github.com/sirupsen/logrus"
 	"time"
 )

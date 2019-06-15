@@ -2,9 +2,9 @@ package magnet
 
 import (
 	"fmt"
-	"github.com/nenadstojanovikj/couch/pkg/media"
-	"github.com/nenadstojanovikj/couch/pkg/storage"
-	"github.com/nenadstojanovikj/rd"
+	"github.com/nenad/couch/pkg/media"
+	"github.com/nenad/couch/pkg/storage"
+	"github.com/nenad/rd"
 	"github.com/sirupsen/logrus"
 	"sort"
 	"strings"

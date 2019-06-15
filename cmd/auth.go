@@ -10,9 +10,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/nenadstojanovikj/couch/pkg/config"
-	"github.com/nenadstojanovikj/rd"
-	"github.com/nenadstojanovikj/trakt"
+	"github.com/nenad/couch/pkg/config"
+	"github.com/nenad/rd"
+	"github.com/nenad/trakt"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )

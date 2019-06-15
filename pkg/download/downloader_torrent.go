@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/anacrolix/torrent"
 	torStorage "github.com/anacrolix/torrent/storage"
-	"github.com/nenadstojanovikj/couch/pkg/config"
-	"github.com/nenadstojanovikj/couch/pkg/media"
-	"github.com/nenadstojanovikj/couch/pkg/storage"
+	"github.com/nenad/couch/pkg/config"
+	"github.com/nenad/couch/pkg/media"
+	"github.com/nenad/couch/pkg/storage"
 	"path"
 )
 

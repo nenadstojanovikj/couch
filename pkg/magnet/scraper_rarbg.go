@@ -2,8 +2,8 @@ package magnet
 
 import (
 	"fmt"
-	"github.com/nenadstojanovikj/couch/pkg/media"
-	"github.com/nenadstojanovikj/couch/pkg/storage"
+	"github.com/nenad/couch/pkg/media"
+	"github.com/nenad/couch/pkg/storage"
 	"github.com/qopher/go-torrentapi"
 	"github.com/sirupsen/logrus"
 	"regexp"

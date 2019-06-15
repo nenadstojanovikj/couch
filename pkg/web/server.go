@@ -3,7 +3,7 @@ package web
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/nenadstojanovikj/couch/pkg/config"
+	"github.com/nenad/couch/pkg/config"
 	"github.com/sirupsen/logrus"
 	"html/template"
 	"net/http"

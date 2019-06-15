@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-	"github.com/nenadstojanovikj/couch/pkg/media"
+	"github.com/nenad/couch/pkg/media"
 	"github.com/sirupsen/logrus"
 )
 

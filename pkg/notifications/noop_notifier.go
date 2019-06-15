@@ -1,7 +1,7 @@
 package notifications
 
 import (
-	"github.com/nenadstojanovikj/couch/pkg/media"
+	"github.com/nenad/couch/pkg/media"
 )
 
 type NoopNotifier struct {
