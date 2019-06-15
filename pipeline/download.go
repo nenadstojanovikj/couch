@@ -8,10 +8,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/nenadstojanovikj/couch/pkg/download"
-	"github.com/nenadstojanovikj/couch/pkg/media"
-	"github.com/nenadstojanovikj/couch/pkg/notifications"
-	"github.com/nenadstojanovikj/couch/pkg/storage"
+	"github.com/nenad/couch/pkg/download"
+	"github.com/nenad/couch/pkg/media"
+	"github.com/nenad/couch/pkg/notifications"
+	"github.com/nenad/couch/pkg/storage"
 	"github.com/sirupsen/logrus"
 )
 

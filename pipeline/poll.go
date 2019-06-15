@@ -2,8 +2,8 @@ package pipeline
 
 import (
 	"database/sql"
-	"github.com/nenadstojanovikj/couch/pkg/media"
-	"github.com/nenadstojanovikj/couch/pkg/storage"
+	"github.com/nenad/couch/pkg/media"
+	"github.com/nenad/couch/pkg/storage"
 	"github.com/sirupsen/logrus"
 	"time"
 )

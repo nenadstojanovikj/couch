@@ -2,7 +2,7 @@ package download
 
 import (
 	"github.com/cavaliercoder/grab"
-	"github.com/nenadstojanovikj/couch/pkg/media"
+	"github.com/nenad/couch/pkg/media"
 )
 
 type HttpDownloader struct {

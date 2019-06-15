@@ -2,7 +2,7 @@ package download
 
 import (
 	"fmt"
-	"github.com/nenadstojanovikj/couch/pkg/media"
+	"github.com/nenad/couch/pkg/media"
 )
 
 const (

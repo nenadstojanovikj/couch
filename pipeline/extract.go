@@ -3,10 +3,10 @@ package pipeline
 import (
 	"sync"
 
-	"github.com/nenadstojanovikj/couch/pkg/config"
-	"github.com/nenadstojanovikj/couch/pkg/magnet"
-	"github.com/nenadstojanovikj/couch/pkg/media"
-	"github.com/nenadstojanovikj/couch/pkg/storage"
+	"github.com/nenad/couch/pkg/config"
+	"github.com/nenad/couch/pkg/magnet"
+	"github.com/nenad/couch/pkg/media"
+	"github.com/nenad/couch/pkg/storage"
 	"github.com/sirupsen/logrus"
 )
 

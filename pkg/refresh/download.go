@@ -1,7 +1,7 @@
 package refresh
 
 import (
-	"github.com/nenadstojanovikj/couch/pkg/storage"
+	"github.com/nenad/couch/pkg/storage"
 )
 
 func Download(repo *storage.MediaRepository, toDownload chan storage.Download) error {

@@ -2,8 +2,8 @@ package magnet_test
 
 import (
 	"fmt"
-	"github.com/nenadstojanovikj/couch/pkg/magnet"
-	"github.com/nenadstojanovikj/couch/pkg/storage"
+	"github.com/nenad/couch/pkg/magnet"
+	"github.com/nenad/couch/pkg/storage"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

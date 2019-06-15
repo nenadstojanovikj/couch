@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"database/sql"
-	"github.com/nenadstojanovikj/couch/pkg/config"
+	"github.com/nenad/couch/pkg/config"
 	"github.com/spf13/cobra"
 	"os"
 	"os/signal"

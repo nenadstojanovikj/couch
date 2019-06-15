@@ -2,7 +2,7 @@ package storage
 
 import (
 	"database/sql"
-	"github.com/nenadstojanovikj/couch/pkg/media"
+	"github.com/nenad/couch/pkg/media"
 	"time"
 )
 
