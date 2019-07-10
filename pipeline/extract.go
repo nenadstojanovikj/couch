@@ -14,14 +14,14 @@ type (
 	extractStep struct {
 		repo      *storage.MediaRepository
 		extractor magnet.Extractor
-		config    *config.Config
+		config    config.Config
 
 		mu              sync.RWMutex
 		currentExtracts map[string]interface{}
 	}
 )
 
-func NewExtractStep(repo *storage.MediaRepository, extractor magnet.Extractor, config *config.Config) *extractStep {
+func NewExtractStep(repo *storage.MediaRepository, extractor magnet.Extractor, config config.Config) *extractStep {
 	return &extractStep{
 		repo:            repo,
 		extractor:       extractor,

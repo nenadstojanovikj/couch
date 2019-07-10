@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"context"
-	"database/sql"
 	"fmt"
 	"net/http"
 	"os"
@@ -10,7 +8,6 @@ import (
 	"syscall"
 	"time"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/nenad/couch/pipeline"
 	"github.com/nenad/couch/pkg/config"
 	"github.com/nenad/couch/pkg/download"
@@ -26,29 +23,25 @@ import (
 	"github.com/streadway/handy/retry"
 )
 
-func NewAppCommand(config *config.Config, db *sql.DB) *cobra.Command {
+func NewAppCommand(config config.Config, repo *storage.MediaRepository, notifier notifications.Notifier) *cobra.Command {
 	return &cobra.Command{
 		Use:   "run",
-		Run:   run(config, db),
+		Run:   run(config, repo, notifier),
 		Short: "Runs the application",
 		Long:  "Starts a daemon that will download files",
 	}
 }
 
-func run(config *config.Config, db *sql.DB) func(cmd *cobra.Command, args []string) {
+func run(config config.Config, repo *storage.MediaRepository, notifier notifications.Notifier) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
-		repo := storage.NewMediaRepository(db)
 		stop := make(chan os.Signal)
 		signal.Notify(stop, os.Interrupt, os.Kill, syscall.SIGTERM)
 		logrus.SetOutput(os.Stdout)
 		logrus.SetLevel(logrus.DebugLevel)
 
-		server := web.NewWebServer(config)
-		notifier := newNotifier(config, db)
-
-		searchItems := pipeline.NewPollStep(repo, pollers(config, repo)).
+		searchItems := pipeline.NewPollStep(repo, pollers(config)).
 			Poll()
-		magnetChan := pipeline.NewScrapeStep(repo, scrapers(config, repo)).
+		magnetChan := pipeline.NewScrapeStep(repo, scrapers()).
 			Scrape(searchItems)
 		downloadLocations := pipeline.NewExtractStep(repo, extractor(config, repo), config).
 			Extract(magnetChan)
@@ -87,27 +80,7 @@ func run(config *config.Config, db *sql.DB) func(cmd *cobra.Command, args []stri
 	}
 }
 
-func newNotifier(c *config.Config, db *sql.DB) notifications.Notifier {
-	if c.TelegramBotToken == "" {
-		return &notifications.NoopNotifier{}
-	}
-
-	bot, err := tgbotapi.NewBotAPI(c.TelegramBotToken)
-	if err != nil {
-		logrus.Fatalf("error while creating Telegram Bot: %s", err)
-	}
-
-	client := notifications.NewTelegramClient(bot, db)
-	go func() {
-		if err := client.StartListener(); err != nil {
-			logrus.Errorf("could not start Telegram listener: %s", err)
-		}
-	}()
-
-	return client
-}
-
-func scrapers(c *config.Config, r *storage.MediaRepository) []magnet.Scraper {
+func scrapers() []magnet.Scraper {
 	rarbgScraper, err := magnet.NewRarbgScraper()
 	if err != nil {
 		logrus.Fatalf("could not initialize rarbg: %s", err)
@@ -118,7 +91,7 @@ func scrapers(c *config.Config, r *storage.MediaRepository) []magnet.Scraper {
 	}
 }
 
-func pollers(c *config.Config, r *storage.MediaRepository) []media.Provider {
+func pollers(c config.Config) []media.Provider {
 	client := &http.Client{}
 	client.Transport = retry.Transport{
 		Next:  http.DefaultTransport,
@@ -134,7 +107,7 @@ func pollers(c *config.Config, r *storage.MediaRepository) []media.Provider {
 	traktClient := trakt.NewClient(
 		c.Trakt.ClientID,
 		c.Trakt.ClientSecret,
-		createTraktToken(&c.Trakt),
+		createTraktToken(c.Trakt),
 		client,
 		nil,
 	)
@@ -144,7 +117,7 @@ func pollers(c *config.Config, r *storage.MediaRepository) []media.Provider {
 	}
 }
 
-func extractor(c *config.Config, r *storage.MediaRepository) magnet.Extractor {
+func extractor(c config.Config, r *storage.MediaRepository) magnet.Extractor {
 	switch c.Downloader {
 	case download.TypeHTTP:
 		client := &http.Client{}
@@ -160,7 +133,7 @@ func extractor(c *config.Config, r *storage.MediaRepository) magnet.Extractor {
 		}
 
 		return magnet.NewRealDebridExtractor(
-			rd.NewRealDebrid(createToken(&c.RealDebrid), client, rd.AutoRefresh),
+			rd.NewRealDebrid(createToken(c.RealDebrid), client, rd.AutoRefresh),
 			time.Second*10,
 			false,
 		)
@@ -171,10 +144,10 @@ func extractor(c *config.Config, r *storage.MediaRepository) magnet.Extractor {
 	}
 }
 
-func downloader(c *config.Config, r *storage.MediaRepository) download.Getter {
+func downloader(c config.Config, r *storage.MediaRepository) download.Getter {
 	switch c.Downloader {
 	case download.TypeTorrent:
-		return download.NewTorrentDownloader(r, c)
+		return download.NewTorrentDownloader(r)
 	case download.TypeHTTP:
 		return download.NewHttpDownloader()
 	default:
@@ -182,7 +155,7 @@ func downloader(c *config.Config, r *storage.MediaRepository) download.Getter {
 	}
 }
 
-func createToken(conf *config.AuthConfig) rd.Token {
+func createToken(conf config.AuthConfig) rd.Token {
 	return rd.Token{
 		AccessToken:  conf.AccessToken,
 		TokenType:    conf.TokenType,
@@ -192,7 +165,7 @@ func createToken(conf *config.AuthConfig) rd.Token {
 	}
 }
 
-func createTraktToken(conf *config.AuthConfig) trakt.Token {
+func createTraktToken(conf config.AuthConfig) trakt.Token {
 	return trakt.Token{
 		AccessToken:  conf.AccessToken,
 		TokenType:    conf.TokenType,

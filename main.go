@@ -1,11 +1,12 @@
 package main
 
 import (
+	"os"
+
 	"github.com/nenad/couch/cmd"
 	"github.com/nenad/couch/pkg/config"
 	"github.com/nenad/couch/pkg/storage"
 	"github.com/sirupsen/logrus"
-	"os"
 )
 
 func main() {
@@ -21,21 +22,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	conf := config.NewConfiguration(db)
-
-	err = conf.Load()
+	store := &config.Store{DB: db}
+	conf, err := config.InitConfiguration(store)
 	if err != nil {
-		if err := conf.Save(); err != nil {
+		if err := store.Save(conf); err != nil {
 			logrus.Errorf("error while saving initial config: %s", err)
 			os.Exit(1)
 		}
 	}
 
-	rootCmd := cmd.NewCLI(&conf, db)
+	rootCmd := cmd.NewCLI(conf, db)
 	err = rootCmd.Execute()
 	if err != nil {
 		logrus.Errorf("error while executing command: %s", err)
 		os.Exit(1)
 	}
-
 }

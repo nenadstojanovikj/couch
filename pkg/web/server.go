@@ -3,17 +3,18 @@ package web
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/nenad/couch/pkg/config"
-	"github.com/sirupsen/logrus"
 	"html/template"
 	"net/http"
+
+	"github.com/nenad/couch/pkg/config"
+	"github.com/sirupsen/logrus"
 )
 
 const templateDir = "web/templates/"
 
-func NewWebServer(config *config.Config) *http.Server {
+func NewWebServer(config config.Config, store config.Saver) *http.Server {
 	mux := &http.ServeMux{}
-	mux.HandleFunc("/updateSettings", updateConfig(config))
+	mux.HandleFunc("/updateSettings", updateConfig(config, store))
 	mux.HandleFunc("/", showIndex(config))
 
 	return &http.Server{
@@ -22,15 +23,15 @@ func NewWebServer(config *config.Config) *http.Server {
 	}
 }
 
-func updateConfig(config *config.Config) http.HandlerFunc {
+func updateConfig(conf config.Config, store config.Saver) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := json.NewDecoder(r.Body).Decode(config); err != nil {
+		if err := json.NewDecoder(r.Body).Decode(conf); err != nil {
 			w.WriteHeader(400)
 			_, _ = w.Write([]byte(fmt.Sprintf("error occurred: %s", err)))
 			return
 		}
 
-		if err := config.Save(); err != nil {
+		if err := store.Save(conf); err != nil {
 			w.WriteHeader(400)
 			_, _ = w.Write([]byte(fmt.Sprintf("error occurred: %s", err)))
 			return
@@ -40,7 +41,7 @@ func updateConfig(config *config.Config) http.HandlerFunc {
 	}
 }
 
-func showIndex(config *config.Config) http.HandlerFunc {
+func showIndex(conf config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		t := template.New("main")
 		t, err := template.ParseGlob(templateDir + "*")
@@ -54,10 +55,10 @@ func showIndex(config *config.Config) http.HandlerFunc {
 			TVShowDirectory string
 			DownloaderType  string
 		}{
-			Port:            config.Port,
-			TVShowDirectory: config.TVShowsPath,
-			MovieDirectory:  config.MoviesPath,
-			DownloaderType:  config.Downloader,
+			Port:            conf.Port,
+			TVShowDirectory: conf.TVShowsPath,
+			MovieDirectory:  conf.MoviesPath,
+			DownloaderType:  conf.Downloader,
 		})
 
 		if err != nil {

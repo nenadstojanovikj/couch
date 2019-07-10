@@ -2,23 +2,21 @@ package download
 
 import (
 	"fmt"
+	"path"
+
 	"github.com/anacrolix/torrent"
 	torStorage "github.com/anacrolix/torrent/storage"
-	"github.com/nenad/couch/pkg/config"
 	"github.com/nenad/couch/pkg/media"
 	"github.com/nenad/couch/pkg/storage"
-	"path"
 )
 
 type torrentDownloader struct {
-	repo   *storage.MediaRepository
-	config *config.Config
+	repo *storage.MediaRepository
 }
 
-func NewTorrentDownloader(repo *storage.MediaRepository, config *config.Config) *torrentDownloader {
+func NewTorrentDownloader(repo *storage.MediaRepository) *torrentDownloader {
 	return &torrentDownloader{
-		repo:   repo,
-		config: config,
+		repo: repo,
 	}
 }
 
@@ -84,6 +82,9 @@ func (d *torrentDownloader) Get(item media.SearchItem, url string, destination s
 	torrentConf := torrent.NewDefaultClientConfig()
 	torrentConf.DefaultStorage = filePather
 	client, err := torrent.NewClient(torrentConf)
+	if err != nil {
+		return nil, fmt.Errorf("coult not set up torrent client: %s", err)
+	}
 
 	tor, err := client.AddMagnet(magnet)
 	if err != nil {

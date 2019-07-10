@@ -17,7 +17,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewAuthCommand(config *config.Config) *cobra.Command {
+func NewAuthCommand(config config.Config, store config.Saver) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "auth",
 		Short: "Starts authentication process",
@@ -26,26 +26,26 @@ func NewAuthCommand(config *config.Config) *cobra.Command {
 
 	cmd.AddCommand(&cobra.Command{
 		Use:   "realdebrid",
-		Run:   realdebrid(config),
+		Run:   realdebrid(config, store),
 		Short: "Auth procedure for RealDebrid service",
 	})
 
 	cmd.AddCommand(&cobra.Command{
 		Use:   "trakt",
-		Run:   trakttv(config),
+		Run:   trakttv(config, store),
 		Short: "Auth procedure for trakt.tv service",
 	})
 
 	cmd.AddCommand(&cobra.Command{
 		Use:   "telegram",
-		Run:   telegram(config),
+		Run:   telegram(config, store),
 		Short: "Auth procedure for Telegram Bot notifications",
 	})
 
 	return cmd
 }
 
-func realdebrid(conf *config.Config) func(command *cobra.Command, args []string) {
+func realdebrid(conf config.Config, store config.Saver) func(command *cobra.Command, args []string) {
 	rdClientID := "X245A4XAIBGVM"
 	return func(cmd *cobra.Command, args []string) {
 		auth := rd.NewAuthClient(http.DefaultClient)
@@ -79,7 +79,7 @@ func realdebrid(conf *config.Config) func(command *cobra.Command, args []string)
 			conf.RealDebrid.ExpiresIn = int64(token.ExpiresIn)
 			conf.RealDebrid.TokenType = token.TokenType
 
-			if err := conf.Save(); err != nil {
+			if err := store.Save(conf); err != nil {
 				logrus.Error(err)
 				os.Exit(1)
 			}
@@ -95,7 +95,7 @@ func realdebrid(conf *config.Config) func(command *cobra.Command, args []string)
 	}
 }
 
-func trakttv(conf *config.Config) func(command *cobra.Command, args []string) {
+func trakttv(conf config.Config, store config.Saver) func(command *cobra.Command, args []string) {
 	clientID := "527bf0f0f3f6004266ad9a52a9c25a1f4547e09344b3b3abc467edd8cfbb2b73"
 	secretID := "5c43a09e917e237ad7a0c6411e1e113176d0ac3810f81ebeb3f1f97534d6bf67"
 
@@ -140,7 +140,7 @@ func trakttv(conf *config.Config) func(command *cobra.Command, args []string) {
 		conf.Trakt.ExpiresIn = int64(token.ExpiresIn)
 		conf.Trakt.TokenType = token.TokenType
 
-		if err := conf.Save(); err != nil {
+		if err := store.Save(conf); err != nil {
 			logrus.Error(err)
 			os.Exit(1)
 		}
@@ -148,7 +148,7 @@ func trakttv(conf *config.Config) func(command *cobra.Command, args []string) {
 	}
 }
 
-func telegram(conf *config.Config) func(cmd *cobra.Command, args []string) {
+func telegram(conf config.Config, store config.Saver) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
 		fmt.Println("1. Open Telegram and message @BotFather with /newbot. Give it a name and username.")
 		fmt.Println("2. Give it a name and username.")
@@ -157,7 +157,7 @@ func telegram(conf *config.Config) func(cmd *cobra.Command, args []string) {
 		var token string
 		_, _ = fmt.Scanln(&token)
 		conf.TelegramBotToken = strings.TrimSpace(token)
-		if err := conf.Save(); err != nil {
+		if err := store.Save(conf); err != nil {
 			logrus.Error(err)
 			os.Exit(1)
 		}
