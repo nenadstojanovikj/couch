@@ -19,7 +19,6 @@ import (
 	"github.com/nenad/couch/pkg/notifications"
 	"github.com/nenad/couch/pkg/refresh"
 	"github.com/nenad/couch/pkg/storage"
-	"github.com/nenad/couch/pkg/web"
 	"github.com/nenad/rd"
 	"github.com/nenad/trakt"
 	"github.com/sirupsen/logrus"
@@ -32,7 +31,7 @@ func NewAppCommand(config *config.Config, db *sql.DB) *cobra.Command {
 		Use:   "run",
 		Run:   run(config, db),
 		Short: "Runs the application",
-		Long:  "Starts a web server and a daemon that will download files",
+		Long:  "Starts a daemon that will download files",
 	}
 }
 
@@ -45,12 +44,6 @@ func run(config *config.Config, db *sql.DB) func(cmd *cobra.Command, args []stri
 		logrus.SetLevel(logrus.DebugLevel)
 
 		server := web.NewWebServer(config)
-		go func() {
-			if err := server.ListenAndServe(); err != nil {
-				logrus.Errorf("web server failed to run: %s", err)
-			}
-		}()
-
 		notifier := newNotifier(config, db)
 
 		searchItems := pipeline.NewPollStep(repo, pollers(config, repo)).
@@ -91,7 +84,6 @@ func run(config *config.Config, db *sql.DB) func(cmd *cobra.Command, args []stri
 		}()
 
 		<-stop
-		_ = server.Shutdown(context.TODO())
 	}
 }
 
