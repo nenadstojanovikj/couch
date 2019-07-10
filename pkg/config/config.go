@@ -1,9 +1,6 @@
 package config
 
 import (
-	"bytes"
-	"database/sql"
-	"encoding/json"
 	"fmt"
 	"os/user"
 	"time"
@@ -20,8 +17,6 @@ type AuthConfig struct {
 }
 
 type Config struct {
-	db *sql.DB
-
 	Downloader string `json:"downloader"`
 
 	Port int `json:"port"`
@@ -37,47 +32,28 @@ type Config struct {
 	TelegramBotToken string `json:"telegram_bot_token"`
 }
 
-func NewConfiguration(db *sql.DB) Config {
+func InitConfiguration(store Loader) (conf Config, err error) {
 	u, err := user.Current()
 	if err != nil {
 		panic(err)
 	}
 
-	return Config{
-		db: db,
-
-		Downloader:              "http",
-		Port:                    8080,
-		MoviesPath:              u.HomeDir + "/Movies",
-		TVShowsPath:             u.HomeDir + "/TVShows",
-		ConcurrentDownloadFiles: 3,
-	}
-}
-
-func (c *Config) Load() error {
-	row := c.db.QueryRow("SELECT config FROM config LIMIT 1;")
-
-	var j []byte
-	err := row.Scan(&j)
-
+	val, err := store.Load()
 	if err != nil {
-		return err
+		return Config{
+			Downloader:              "http",
+			Port:                    8080,
+			MoviesPath:              u.HomeDir + "/Movies",
+			TVShowsPath:             u.HomeDir + "/TVShows",
+			ConcurrentDownloadFiles: 3,
+		}, err
 	}
 
-	if bytes.Equal(j, []byte("{}")) {
-		return fmt.Errorf("empty config")
+	if c, ok := val.(Config); !ok {
+		return c, fmt.Errorf("invalid config store: %#v", val)
+	} else {
+		conf = c
 	}
 
-	return json.Unmarshal(j, &c)
-}
-
-func (c *Config) Save() error {
-	// Indenting so it's human readable for easier inspection
-	b, err := json.MarshalIndent(c, "", "    ")
-	if err != nil {
-		return err
-	}
-
-	_, err = c.db.Exec("UPDATE config SET config = ?", b)
-	return err
+	return conf, nil
 }
