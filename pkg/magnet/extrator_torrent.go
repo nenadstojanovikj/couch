@@ -2,10 +2,11 @@ package magnet
 
 import (
 	"fmt"
+	"sort"
+
 	"github.com/anacrolix/torrent"
 	"github.com/nenad/couch/pkg/media"
 	"github.com/nenad/couch/pkg/storage"
-	"sort"
 )
 
 type torrentExtractor struct {
@@ -20,10 +21,10 @@ func NewTorrentExtractor(repo *storage.MediaRepository) *torrentExtractor {
 
 func (ex *torrentExtractor) Extract(magnet storage.Magnet) ([]string, error) {
 	client, err := torrent.NewClient(nil)
-	defer client.Close()
 	if err != nil {
 		return nil, fmt.Errorf("could not create torrent client: %s", err)
 	}
+	defer client.Close()
 	tor, err := client.AddMagnet(magnet.Location)
 	if err != nil {
 		return nil, fmt.Errorf("could not create torrent file: %s", err)

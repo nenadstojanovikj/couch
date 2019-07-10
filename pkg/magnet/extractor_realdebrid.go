@@ -2,13 +2,14 @@ package magnet
 
 import (
 	"fmt"
+	"sort"
+	"strings"
+	"time"
+
 	"github.com/nenad/couch/pkg/media"
 	"github.com/nenad/couch/pkg/storage"
 	"github.com/nenad/rd"
 	"github.com/sirupsen/logrus"
-	"sort"
-	"strings"
-	"time"
 )
 
 type (

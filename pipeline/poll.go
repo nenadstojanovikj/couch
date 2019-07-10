@@ -2,10 +2,11 @@ package pipeline
 
 import (
 	"database/sql"
+	"time"
+
 	"github.com/nenad/couch/pkg/media"
 	"github.com/nenad/couch/pkg/storage"
 	"github.com/sirupsen/logrus"
-	"time"
 )
 
 type pollStep struct {

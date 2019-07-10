@@ -2,8 +2,9 @@ package storage
 
 import (
 	"database/sql"
-	"github.com/nenad/couch/pkg/media"
 	"time"
+
+	"github.com/nenad/couch/pkg/media"
 )
 
 const (

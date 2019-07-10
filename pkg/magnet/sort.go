@@ -1,8 +1,9 @@
 package magnet
 
 import (
-	"github.com/nenad/couch/pkg/storage"
 	"sort"
+
+	"github.com/nenad/couch/pkg/storage"
 )
 
 var qualityScore = map[storage.Quality]int{

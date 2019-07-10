@@ -1,9 +1,10 @@
 package media
 
 import (
+	"time"
+
 	"github.com/nenad/trakt"
 	"github.com/sirupsen/logrus"
-	"time"
 )
 
 func NewTraktProvider(trakt *trakt.Client) *TraktProvider {

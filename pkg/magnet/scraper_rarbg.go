@@ -2,11 +2,12 @@ package magnet
 
 import (
 	"fmt"
+	"regexp"
+
 	"github.com/nenad/couch/pkg/media"
 	"github.com/nenad/couch/pkg/storage"
-	"github.com/qopher/go-torrentapi"
+	torrentapi "github.com/qopher/go-torrentapi"
 	"github.com/sirupsen/logrus"
-	"regexp"
 )
 
 type (

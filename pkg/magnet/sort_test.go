@@ -2,10 +2,11 @@ package magnet_test
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/nenad/couch/pkg/magnet"
 	"github.com/nenad/couch/pkg/storage"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestSortQuality(t *testing.T) {

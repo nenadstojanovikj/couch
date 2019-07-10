@@ -2,6 +2,7 @@ package download
 
 import (
 	"fmt"
+
 	"github.com/nenad/couch/pkg/media"
 )
 
